@@ -6,8 +6,10 @@ export const Route = createFileRoute('/auth')({
 
 function AuthLayout() {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
-            <div className="w-full max-w-md">
+        <div className="min-h-screen flex items-center justify-center bg-sketchy-bg-primary relative overflow-hidden p-4 sm:p-6 lg:p-8">
+            {/* Background texture overlay */}
+            <div className="absolute inset-0 bg-texture-adaptive-paper opacity-40 pointer-events-none" />
+            <div className="relative z-10 w-full max-w-lg">
                 <Outlet />
             </div>
         </div>

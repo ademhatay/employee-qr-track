@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, Outlet, Link, useLocation } from '@tanstack/react-router'
-import { Home, QrCode, History } from 'lucide-react'
+import { Icons } from '@/lib/icons'
 
 export const Route = createFileRoute('/app')({
     beforeLoad: () => {
@@ -19,9 +19,9 @@ function EmployeeAppLayout() {
     const location = useLocation()
 
     const navItems = [
-        { href: '/app', icon: Home, label: 'Ana Sayfa' },
-        { href: '/app/scan', icon: QrCode, label: 'Tara' },
-        { href: '/app/history', icon: History, label: 'Geçmiş' },
+        { href: '/app', icon: Icons.home, label: 'Ana Sayfa' },
+        { href: '/app/scan', icon: Icons.qrCode, label: 'Tara' },
+        { href: '/app/history', icon: Icons.history, label: 'Geçmiş' },
     ]
 
     return (

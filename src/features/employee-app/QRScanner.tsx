@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useDataStore, useAuthStore } from '@/lib/store'
 import { toast } from 'sonner'
-import { Camera, CheckCircle2, XCircle, Clock } from 'lucide-react'
+import { Icons } from '@/lib/icons'
 import type { Attendance } from '@/types'
 
 export function QRScanner() {
@@ -105,9 +105,9 @@ export function QRScanner() {
                 <CardContent className="p-4 flex items-center gap-4">
                     <div className={`p-3 rounded-full ${isCheckedIn ? 'bg-green-500' : 'bg-orange-500'}`}>
                         {isCheckedIn ? (
-                            <CheckCircle2 className="h-6 w-6 text-white" />
+                            <Icons.checkCircle className="h-6 w-6 text-white" />
                         ) : (
-                            <Clock className="h-6 w-6 text-white" />
+                            <Icons.clock className="h-6 w-6 text-white" />
                         )}
                     </div>
                     <div>
@@ -127,7 +127,7 @@ export function QRScanner() {
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        <Camera className="h-5 w-5" />
+                        <Icons.camera className="h-5 w-5" />
                         Kamera
                     </CardTitle>
                 </CardHeader>
@@ -136,12 +136,12 @@ export function QRScanner() {
 
                     {!isScanning ? (
                         <Button onClick={startScanner} className="w-full mt-4" size="lg">
-                            <Camera className="mr-2 h-5 w-5" />
+                            <Icons.camera className="mr-2 h-5 w-5" />
                             Taramayı Başlat
                         </Button>
                     ) : (
                         <Button onClick={stopScanner} variant="outline" className="w-full mt-4" size="lg">
-                            <XCircle className="mr-2 h-5 w-5" />
+                            <Icons.xCircle className="mr-2 h-5 w-5" />
                             Taramayı Durdur
                         </Button>
                     )}
@@ -152,7 +152,7 @@ export function QRScanner() {
             {lastScan && (
                 <Card className="border-primary">
                     <CardContent className="p-4 text-center">
-                        <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-2" />
+                        <Icons.checkCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
                         <p className="text-lg font-semibold">
                             {lastScan.type === 'check-in' ? 'Giriş Yapıldı!' : 'Çıkış Yapıldı!'}
                         </p>

@@ -20,7 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useDataStore, useAuthStore } from '@/lib/store'
 import { format, startOfMonth, endOfMonth, differenceInMinutes, isWithinInterval } from 'date-fns'
 import { tr } from 'date-fns/locale'
-import { CalendarIcon, Download, Clock } from 'lucide-react'
+import { Icons } from '@/lib/icons'
 
 export function ReportsPage() {
     const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
@@ -82,7 +82,7 @@ export function ReportsPage() {
                     </p>
                 </div>
                 <Button variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
+                    <Icons.download className="mr-2 h-4 w-4" />
                     Excel İndir
                 </Button>
             </div>
@@ -96,7 +96,7 @@ export function ReportsPage() {
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button variant="outline" className="justify-start text-left font-normal">
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        <Icons.calendar className="mr-2 h-4 w-4" />
                                         {format(dateRange.from, 'dd MMM', { locale: tr })} -{' '}
                                         {format(dateRange.to, 'dd MMM yyyy', { locale: tr })}
                                     </Button>
@@ -194,7 +194,7 @@ export function ReportsPage() {
                                         <TableCell className="text-right">{report.daysWorked}</TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex items-center justify-end gap-1">
-                                                <Clock className="h-3 w-3 text-muted-foreground" />
+                                                <Icons.clock className="h-3 w-3 text-muted-foreground" />
                                                 {report.hours}s {report.minutes}dk
                                             </div>
                                         </TableCell>

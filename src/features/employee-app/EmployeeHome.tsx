@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useDataStore, useAuthStore } from '@/lib/store'
 import { Link } from '@tanstack/react-router'
-import { QrCode, Clock, History, TrendingUp } from 'lucide-react'
+import { Icons } from '@/lib/icons'
 import { format, differenceInMinutes } from 'date-fns'
 
 export function EmployeeHome() {
@@ -47,7 +47,7 @@ export function EmployeeHome() {
                 <CardContent className="p-6 text-center">
                     <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${isCheckedIn ? 'bg-green-500' : 'bg-muted'
                         }`}>
-                        <Clock className={`h-8 w-8 ${isCheckedIn ? 'text-white' : 'text-muted-foreground'}`} />
+                        <Icons.clock className={`h-8 w-8 ${isCheckedIn ? 'text-white' : 'text-muted-foreground'}`} />
                     </div>
                     <h2 className="text-xl font-semibold mb-1">
                         {isCheckedIn ? 'Şu an çalışıyorsunuz' : 'Henüz giriş yapmadınız'}
@@ -64,14 +64,14 @@ export function EmployeeHome() {
             <div className="grid grid-cols-2 gap-4">
                 <Card>
                     <CardContent className="p-4 text-center">
-                        <TrendingUp className="h-6 w-6 mx-auto mb-2 text-primary" />
+                        <Icons.trending className="h-6 w-6 mx-auto mb-2 text-primary" />
                         <p className="text-2xl font-bold">{hours}s {minutes}dk</p>
                         <p className="text-sm text-muted-foreground">Bugünkü Süre</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent className="p-4 text-center">
-                        <History className="h-6 w-6 mx-auto mb-2 text-primary" />
+                        <Icons.history className="h-6 w-6 mx-auto mb-2 text-primary" />
                         <p className="text-2xl font-bold">{todayAttendances.length}</p>
                         <p className="text-sm text-muted-foreground">İşlem Sayısı</p>
                     </CardContent>
@@ -81,7 +81,7 @@ export function EmployeeHome() {
             {/* Scan Button */}
             <Link to="/app/scan">
                 <Button size="lg" className="w-full h-16 text-lg">
-                    <QrCode className="mr-3 h-6 w-6" />
+                    <Icons.qrCode className="mr-3 h-6 w-6" />
                     {isCheckedIn ? 'Çıkış Yap' : 'Giriş Yap'}
                 </Button>
             </Link>
@@ -91,7 +91,7 @@ export function EmployeeHome() {
                 <Link to="/app/history">
                     <Card className="hover:bg-accent transition-colors cursor-pointer">
                         <CardContent className="p-4 text-center">
-                            <History className="h-6 w-6 mx-auto mb-2" />
+                            <Icons.history className="h-6 w-6 mx-auto mb-2" />
                             <p className="font-medium">Geçmiş</p>
                         </CardContent>
                     </Card>

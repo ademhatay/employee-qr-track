@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useDataStore, useAuthStore } from '@/lib/store'
 import { format, differenceInMinutes, startOfMonth, endOfMonth } from 'date-fns'
 import { tr } from 'date-fns/locale'
-import { Clock, ArrowDownCircle, ArrowUpCircle } from 'lucide-react'
+import { Icons } from '@/lib/icons'
 
 export function AttendanceHistory() {
     const user = useAuthStore((state) => state.user)
@@ -68,7 +68,7 @@ export function AttendanceHistory() {
                                 {totalHours} saat {remainingMinutes} dk
                             </p>
                         </div>
-                        <Clock className="h-10 w-10 text-primary/50" />
+                        <Icons.clock className="h-10 w-10 text-primary/50" />
                     </div>
                 </CardContent>
             </Card>
@@ -109,9 +109,9 @@ export function AttendanceHistory() {
                                     >
                                         <div className="flex items-center gap-3">
                                             {record.type === 'check-in' ? (
-                                                <ArrowDownCircle className="h-5 w-5 text-green-500" />
+                                                <Icons.arrowDown className="h-5 w-5 text-green-500" />
                                             ) : (
-                                                <ArrowUpCircle className="h-5 w-5 text-red-500" />
+                                                <Icons.arrowUp className="h-5 w-5 text-red-500" />
                                             )}
                                             <span className="font-medium">
                                                 {record.type === 'check-in' ? 'Giriş' : 'Çıkış'}

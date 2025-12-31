@@ -8,7 +8,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Icons } from '@/lib/icons'
 import { EmployeeTable } from './components/EmployeeTable'
 import { EmployeeForm } from './components/EmployeeForm'
 import { useEmployees, useCreateEmployee } from './api/queries'
@@ -41,7 +41,7 @@ export function EmployeeManagement() {
                 <Dialog open={isOpen} onOpenChange={setIsOpen}>
                     <DialogTrigger asChild>
                         <Button>
-                            <Plus className="mr-2 h-4 w-4" />
+                            <Icons.add className="mr-2 h-4 w-4" />
                             Add Employee
                         </Button>
                     </DialogTrigger>

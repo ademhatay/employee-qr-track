@@ -31,7 +31,7 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useDataStore, useAuthStore, type KioskAccount } from '@/lib/store'
 import { toast } from 'sonner'
-import { Plus, QrCode, Building2, CreditCard, Trash2, Copy, Eye, EyeOff, Info } from 'lucide-react'
+import { Icons } from '@/lib/icons'
 
 const kioskSchema = z.object({
     name: z.string().min(2, 'Kiosk adı en az 2 karakter olmalı'),
@@ -94,7 +94,7 @@ export function SettingsPage() {
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        <Building2 className="h-5 w-5" />
+                        <Icons.building className="h-5 w-5" />
                         Şirket Bilgileri
                     </CardTitle>
                 </CardHeader>
@@ -115,7 +115,7 @@ export function SettingsPage() {
                             size="sm"
                             onClick={() => copyToClipboard(company?.id || '', 'Şirket ID')}
                         >
-                            <Copy className="h-4 w-4 mr-2" />
+                            <Icons.copy className="h-4 w-4 mr-2" />
                             Kopyala
                         </Button>
                     </div>
@@ -126,7 +126,7 @@ export function SettingsPage() {
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        <CreditCard className="h-5 w-5" />
+                        <Icons.creditCard className="h-5 w-5" />
                         Abonelik Planı
                     </CardTitle>
                 </CardHeader>
@@ -157,7 +157,7 @@ export function SettingsPage() {
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
                         <CardTitle className="flex items-center gap-2">
-                            <QrCode className="h-5 w-5" />
+                            <Icons.qrCode className="h-5 w-5" />
                             Kiosk Hesapları
                         </CardTitle>
                         <CardDescription>
@@ -167,7 +167,7 @@ export function SettingsPage() {
                     <Dialog open={isOpen} onOpenChange={setIsOpen}>
                         <DialogTrigger asChild>
                             <Button>
-                                <Plus className="mr-2 h-4 w-4" />
+                                <Icons.add className="mr-2 h-4 w-4" />
                                 Kiosk Ekle
                             </Button>
                         </DialogTrigger>
@@ -217,7 +217,7 @@ export function SettingsPage() {
                 <CardContent>
                     {companyKiosks.length === 0 ? (
                         <div className="text-center py-8">
-                            <QrCode className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                            <Icons.qrCode className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                             <p className="text-muted-foreground mb-2">
                                 Henüz kiosk hesabı yok
                             </p>
@@ -229,7 +229,7 @@ export function SettingsPage() {
                         <div className="space-y-4">
                             {/* Instructions */}
                             <Alert>
-                                <Info className="h-4 w-4" />
+                                <Icons.info className="h-4 w-4" />
                                 <AlertTitle>Kiosk Nasıl Açılır?</AlertTitle>
                                 <AlertDescription>
                                     Kiosk cihazında <code className="bg-muted px-1 rounded">/kiosk/login</code> adresine gidin.
@@ -244,7 +244,7 @@ export function SettingsPage() {
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className="p-2 bg-primary/10 rounded-lg">
-                                            <QrCode className="h-5 w-5 text-primary" />
+                                            <Icons.qrCode className="h-5 w-5 text-primary" />
                                         </div>
                                         <div>
                                             <p className="font-medium">{kiosk.name}</p>
@@ -260,9 +260,9 @@ export function SettingsPage() {
                                                     onClick={() => togglePinVisibility(kiosk.id)}
                                                 >
                                                     {showPins[kiosk.id] ? (
-                                                        <EyeOff className="h-3 w-3" />
+                                                        <Icons.eyeOff className="h-3 w-3" />
                                                     ) : (
-                                                        <Eye className="h-3 w-3" />
+                                                        <Icons.eye className="h-3 w-3" />
                                                     )}
                                                 </Button>
                                                 <Button
@@ -271,13 +271,13 @@ export function SettingsPage() {
                                                     className="h-6 w-6"
                                                     onClick={() => copyToClipboard(kiosk.pin, 'PIN')}
                                                 >
-                                                    <Copy className="h-3 w-3" />
+                                                    <Icons.copy className="h-3 w-3" />
                                                 </Button>
                                             </div>
                                         </div>
                                     </div>
                                     <Button variant="ghost" size="icon">
-                                        <Trash2 className="h-4 w-4 text-muted-foreground" />
+                                        <Icons.delete className="h-4 w-4 text-muted-foreground" />
                                     </Button>
                                 </div>
                             ))}

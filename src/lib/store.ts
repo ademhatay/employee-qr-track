@@ -58,7 +58,43 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
 
             login: async (email: string, password: string) => {
-                // Mock login - check localStorage for registered users
+                // Check demo accounts first
+                const demoAccounts = [
+                    {
+                        email: 'admin@demo.com',
+                        password: 'demo123',
+                        id: 'demo-admin',
+                        name: 'Admin User',
+                        role: 'owner' as const,
+                        companyId: 'demo-company',
+                        createdAt: new Date().toISOString(),
+                    },
+                    {
+                        email: 'user@demo.com',
+                        password: 'demo123',
+                        id: 'demo-user',
+                        name: 'Demo User',
+                        role: 'manager' as const,
+                        companyId: 'demo-company',
+                        createdAt: new Date().toISOString(),
+                    },
+                ]
+
+                const demoUser = demoAccounts.find((u) => u.email === email && u.password === password)
+                if (demoUser) {
+                    const demoCompany: Company = {
+                        id: 'demo-company',
+                        name: 'Demo Company',
+                        plan: 'pro',
+                        kioskCode: 'DEMO-KIOSK',
+                        ownerId: 'demo-admin',
+                        createdAt: new Date().toISOString(),
+                    }
+                    set({ user: demoUser, company: demoCompany, isAuthenticated: true })
+                    return true
+                }
+
+                // Check localStorage for registered users
                 const users = JSON.parse(localStorage.getItem('qr-track-users') || '[]') as AuthUser[]
                 const user = users.find((u) => u.email === email && u.password === password)
 

@@ -12,15 +12,10 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useAuthStore } from '@/lib/store'
 import { toast } from 'sonner'
-import {
-    SignIn,
-    Envelope,
-    Lock,
-    ArrowRight,
-    ShieldCheck
-} from '@phosphor-icons/react'
+import { Icons } from '@/lib/icons'
 import { Badge } from '@/components/ui/badge'
 
 const loginSchema = z.object({
@@ -61,118 +56,189 @@ export function LoginForm() {
     }
 
     return (
-        <div className="min-h-screen bg-[#0f1115] text-white relative overflow-hidden">
-            {/* Background Effects */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(45,212,191,0.12),transparent_55%),radial-gradient(circle_at_bottom,_rgba(59,130,246,0.12),transparent_60%)]" />
-            <div
-                className="absolute inset-0 opacity-[0.03]"
-                style={{
-                    backgroundImage: `linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)`,
-                    backgroundSize: '72px 72px',
-                }}
-            />
-
-            <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-8">
-                <div className="w-full max-w-sm space-y-8">
-                    {/* Header */}
-                    <div className="text-center">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl border border-white/10 bg-white/5 mb-5">
-                            <SignIn size={30} weight="duotone" className="text-white/80" />
-                        </div>
-                        <h1 className="text-3xl font-semibold tracking-tight">
-                            Giriş Yap
-                        </h1>
-                        <p className="text-sm text-white/50 mt-2">
-                            Hesabınıza giriş yaparak devam edin.
-                        </p>
-                        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                            <Badge className="border-white/10 bg-white/5 text-white/70">
-                                Admin Panel
-                            </Badge>
-                            <Badge className="border-emerald-400/30 bg-emerald-400/10 text-emerald-200">
-                                <ShieldCheck size={12} weight="duotone" />
-                                Güvenli
-                            </Badge>
-                        </div>
+        <>
+            {/* Header Section */}
+            <div className="text-center mb-6 space-y-3">
+                {/* Logo */}
+                <div className="flex justify-center">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-sketchy-accent-blue border-organic-md shadow-sketchy-md">
+                        <Icons.building className="w-7 h-7 text-white" />
                     </div>
+                </div>
 
-                    {/* Form Card */}
-                    <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 sm:p-7">
+                {/* Title and Description */}
+                <div className="space-y-1">
+                    <h1 className="heading-organic-2 text-sketchy-primary">
+                        Hoş Geldiniz
+                    </h1>
+                    <p className="body-organic-small text-sketchy-text-secondary">
+                        Çalışan takip sisteminize giriş yapın
+                    </p>
+                </div>
+
+                {/* Badges */}
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                    <Badge variant="secondary" className="border-organic-sm text-xs">
+                        <Icons.lock className="w-3 h-3 mr-1" />
+                        Güvenli Giriş
+                    </Badge>
+                    <Badge variant="secondary" className="border-organic-sm text-xs">
+                        QR Kod Takibi
+                    </Badge>
+                </div>
+            </div>
+
+                {/* Login Card */}
+                <Card sketchy texture="paper" className="shadow-sketchy-lg">
+                    <CardHeader sketchy className="space-y-1 pb-4">
+                        <CardTitle sketchy className="heading-organic-4">
+                            Giriş Yap
+                        </CardTitle>
+                        <CardDescription sketchy className="body-organic-small">
+                            E-posta ve şifrenizle hesabınıza erişin
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent sketchy className="pt-0">
                         <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                                {/* Email Field */}
                                 <FormField
                                     control={form.control}
                                     name="email"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-white/70 text-sm font-medium flex items-center gap-2">
-                                                <Envelope size={16} weight="duotone" />
+                                            <FormLabel className="flex items-center gap-2 body-organic-small">
+                                                <Icons.mail className="w-4 h-4 text-sketchy-accent-blue" />
                                                 E-posta
                                             </FormLabel>
                                             <FormControl>
                                                 <Input
                                                     type="email"
                                                     placeholder="ornek@sirket.com"
-                                                    className="h-12 bg-transparent border-white/15 text-white placeholder:text-white/30 rounded-xl focus:border-emerald-300/40 focus:ring-emerald-300/20"
+                                                    className="border-organic-md h-10"
                                                     {...field}
                                                 />
                                             </FormControl>
-                                            <FormMessage className="text-rose-400" />
+                                            <FormMessage />
                                         </FormItem>
                                     )}
                                 />
+
+                                {/* Password Field */}
                                 <FormField
                                     control={form.control}
                                     name="password"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-white/70 text-sm font-medium flex items-center gap-2">
-                                                <Lock size={16} weight="duotone" />
+                                            <FormLabel className="flex items-center gap-2 body-organic-small">
+                                                <Icons.lock className="w-4 h-4 text-sketchy-accent-blue" />
                                                 Şifre
                                             </FormLabel>
                                             <FormControl>
                                                 <Input
                                                     type="password"
                                                     placeholder="••••••••"
-                                                    className="h-12 bg-transparent border-white/15 text-white placeholder:text-white/30 rounded-xl focus:border-emerald-300/40 focus:ring-emerald-300/20"
+                                                    className="border-organic-md h-10"
                                                     {...field}
                                                 />
                                             </FormControl>
-                                            <FormMessage className="text-rose-400" />
+                                            <FormMessage />
                                         </FormItem>
                                     )}
                                 />
+
+                                {/* Submit Button */}
                                 <Button
                                     type="submit"
-                                    className="w-full h-12 bg-white text-black hover:bg-white/90 font-medium rounded-xl transition-all duration-200 mt-2"
+                                    variant="sketchy"
+                                    size="lg"
+                                    className="w-full h-11"
                                     disabled={form.formState.isSubmitting}
                                 >
                                     {form.formState.isSubmitting ? (
-                                        'Giriş yapılıyor...'
+                                        <span className="flex items-center gap-2">
+                                            <Icons.spinner className="w-4 h-4 animate-spin" />
+                                            Giriş yapılıyor...
+                                        </span>
                                     ) : (
-                                        <span className="flex items-center justify-center gap-2">
+                                        <span className="flex items-center gap-2">
                                             Giriş Yap
-                                            <ArrowRight size={18} weight="bold" />
+                                            <Icons.arrowRight className="w-4 h-4" />
                                         </span>
                                     )}
                                 </Button>
                             </form>
                         </Form>
-                    </div>
 
-                    {/* Footer */}
-                    <p className="text-sm text-center text-white/50">
-                        Hesabınız yok mu?{' '}
-                        <Link
-                            to="/auth/register"
-                            className="text-emerald-400 hover:text-emerald-300 transition-colors"
-                        >
-                            Kayıt Ol
-                        </Link>
+                        {/* Divider */}
+                        <div className="relative my-4">
+                            <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t border-sketchy-border-muted border-dashed" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-card px-2 text-sketchy-text-muted">
+                                    veya
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Register Link */}
+                        <div className="text-center">
+                            <p className="body-organic-small text-sketchy-text-secondary">
+                                Hesabınız yok mu?{' '}
+                                <Link
+                                    to="/auth/register"
+                                    className="text-sketchy-accent-blue hover:text-sketchy-accent-blue/80 transition-colors font-medium inline-flex items-center gap-1"
+                                >
+                                    Kayıt Ol
+                                    <Icons.arrowRight className="w-3 h-3" />
+                                </Link>
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Quick Demo Access */}
+                <div className="mt-6 text-center space-y-2">
+                    <p className="body-organic-small text-sketchy-text-muted text-xs">
+                        Demo hesaplarla deneyin:
                     </p>
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                        <Badge
+                            variant="outline"
+                            onClick={() => {
+                                form.setValue('email', 'admin@demo.com')
+                                form.setValue('password', 'demo123')
+                                form.handleSubmit(onSubmit)()
+                            }}
+                            className="border-organic-sm cursor-pointer hover:bg-sketchy-bg-secondary transition-colors text-xs py-1 hover:scale-105 transform"
+                        >
+                            Admin: admin@demo.com
+                        </Badge>
+                        <Badge
+                            variant="outline"
+                            onClick={() => {
+                                form.setValue('email', 'user@demo.com')
+                                form.setValue('password', 'demo123')
+                                form.handleSubmit(onSubmit)()
+                            }}
+                            className="border-organic-sm cursor-pointer hover:bg-sketchy-bg-secondary transition-colors text-xs py-1 hover:scale-105 transform"
+                        >
+                            User: user@demo.com
+                        </Badge>
+                    </div>
                 </div>
-            </div>
-        </div>
+
+                {/* Back to Home */}
+                <div className="mt-4 text-center">
+                    <Link
+                        to="/"
+                        className="body-organic-small text-sketchy-text-muted hover:text-sketchy-primary transition-colors inline-flex items-center gap-1 text-xs"
+                    >
+                        <Icons.arrowLeft className="w-3 h-3" />
+                        Ana sayfaya dön
+                    </Link>
+                </div>
+        </>
     )
 }
