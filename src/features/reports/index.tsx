@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
     Card,
     CardContent,
@@ -18,19 +18,138 @@ import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useDataStore, useAuthStore } from '@/lib/store'
-import { format, startOfMonth, endOfMonth, differenceInMinutes, isWithinInterval } from 'date-fns'
+import { format, startOfMonth, endOfMonth, differenceInMinutes, isWithinInterval, subMonths } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { Icons } from '@/lib/icons'
+import { toast } from 'sonner'
 
 export function ReportsPage() {
+    // Initialize with last month's date range
+    const lastMonth = subMonths(new Date(), 1)
     const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
-        from: startOfMonth(new Date()),
-        to: endOfMonth(new Date()),
+        from: startOfMonth(lastMonth),
+        to: endOfMonth(lastMonth),
     })
 
     const company = useAuthStore((state) => state.company)
     const employees = useDataStore((state) => state.employees)
     const attendances = useDataStore((state) => state.attendances)
+    const addEmployee = useDataStore((state) => state.addEmployee)
+    const addAttendance = useDataStore((state) => state.addAttendance)
+
+    // Ensure demo data exists for demo company
+    useEffect(() => {
+        if (company?.id === 'demo-company') {
+            const demoCompanyId = 'demo-company'
+            const hasDemoEmployees = employees.some((e) => e.companyId === demoCompanyId)
+            const hasDemoAttendances = attendances.some((a) => a.companyId === demoCompanyId)
+
+            if (!hasDemoEmployees || !hasDemoAttendances) {
+                // Generate demo data
+                const lastMonthDate = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1)
+                const demoMonth = lastMonthDate.getMonth()
+                const demoYear = lastMonthDate.getFullYear()
+                const daysInMonth = new Date(demoYear, demoMonth + 1, 0).getDate()
+                const workDays: Array<number> = []
+                
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(demoYear, demoMonth, day)
+                    const dayOfWeek = date.getDay()
+                    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                        workDays.push(day)
+                    }
+                }
+
+                const demoEmployees = [
+                    { id: 'emp-001', name: 'Ahmet Yılmaz', email: 'ahmet@demo.com', role: 'employee' as const, position: 'Yazılım Geliştirici', companyId: demoCompanyId, isActive: true, createdAt: new Date('2024-01-15').toISOString() },
+                    { id: 'emp-002', name: 'Ayşe Demir', email: 'ayse@demo.com', role: 'employee' as const, position: 'Tasarım Direktörü', companyId: demoCompanyId, isActive: true, createdAt: new Date('2024-02-20').toISOString() },
+                    { id: 'emp-003', name: 'Mehmet Kaya', email: 'mehmet@demo.com', role: 'manager' as const, position: 'Proje Yöneticisi', companyId: demoCompanyId, isActive: true, createdAt: new Date('2024-03-10').toISOString() },
+                    { id: 'emp-004', name: 'Zeynep Arslan', email: 'zeynep@demo.com', role: 'employee' as const, position: 'İnsan Kaynakları', companyId: demoCompanyId, isActive: true, createdAt: new Date('2024-04-05').toISOString() },
+                    { id: 'emp-005', name: 'Can Öztürk', email: 'can@demo.com', role: 'employee' as const, position: 'Satış Temsilcisi', companyId: demoCompanyId, isActive: true, createdAt: new Date('2024-05-18').toISOString() },
+                ]
+
+                if (!hasDemoEmployees) {
+                    demoEmployees.forEach((emp) => addEmployee(emp))
+                }
+
+                if (!hasDemoAttendances) {
+                    demoEmployees.forEach((employee) => {
+                        const workPercentage = 0.7 + Math.random() * 0.1
+                        const daysWorked = Math.floor(workDays.length * workPercentage)
+                        const shuffledDays = [...workDays].sort(() => Math.random() - 0.5)
+                        const employeeWorkDays = shuffledDays.slice(0, daysWorked)
+
+                        employeeWorkDays.forEach((day) => {
+                            const checkInHour = 8 + Math.floor(Math.random() * 2)
+                            const checkOutHour = 17 + Math.floor(Math.random() * 2)
+                            const checkInMinute = Math.floor(Math.random() * 60)
+                            const checkOutMinute = Math.floor(Math.random() * 60)
+
+                            const checkInDate = new Date(demoYear, demoMonth, day, checkInHour, checkInMinute)
+                            const checkOutDate = new Date(demoYear, demoMonth, day, checkOutHour, checkOutMinute)
+
+                            addAttendance({
+                                id: crypto.randomUUID(),
+                                employeeId: employee.id,
+                                companyId: demoCompanyId,
+                                type: 'check-in',
+                                timestamp: checkInDate.toISOString(),
+                                device: 'kiosk',
+                            })
+                            addAttendance({
+                                id: crypto.randomUUID(),
+                                employeeId: employee.id,
+                                companyId: demoCompanyId,
+                                type: 'check-out',
+                                timestamp: checkOutDate.toISOString(),
+                                device: 'kiosk',
+                            })
+                        })
+                    })
+                }
+            }
+        }
+    }, [company?.id, employees, attendances, addEmployee, addAttendance])
+
+    const downloadExcel = () => {
+        try {
+            // Create CSV content with BOM for Excel compatibility
+            const BOM = '\uFEFF'
+            let csvContent = 'Çalışan Adı,Pozisyon,Toplam Gün,Çalışma Saati,İşlem Sayısı\n'
+
+            employeeReports.forEach((report) => {
+                csvContent += `"${report.employee.name}",`
+                csvContent += `"${report.employee.position || ''}",`
+                csvContent += `${report.daysWorked},`
+                csvContent += `"${report.hours}s ${report.minutes}dk",`
+                csvContent += `${report.totalAttendances}\n`
+            })
+
+            // Add summary row
+            csvContent += '\n'
+            csvContent += `,,,,\n`
+            csvContent += `"ÖZET",,,,\n`
+            csvContent += `"Toplam Çalışma:",,,"${totalHours.toFixed(1)} saat",\n`
+            csvContent += `"Toplam Çalışan:",,,"${companyEmployees.length}",\n`
+            csvContent += `"Toplam İşlem:",,,"${employeeReports.reduce((sum, r) => sum + r.totalAttendances, 0)}",\n`
+
+            // Create and download file
+            const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' })
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement('a')
+            link.href = url
+            link.download = `Rapor_${format(dateRange.from, 'dd_MM_yyyy')}_${format(dateRange.to, 'dd_MM_yyyy')}.csv`
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            URL.revokeObjectURL(url)
+
+            toast.success('Excel dosyası başarıyla indirildi!')
+        } catch (error) {
+            console.error('Export error:', error)
+            toast.error('Dosya indirilirken hata oluştu')
+        }
+    }
 
     const companyEmployees = employees.filter((e) => e.companyId === company?.id)
 
@@ -81,7 +200,7 @@ export function ReportsPage() {
                         Çalışan devam ve performans raporları
                     </p>
                 </div>
-                <Button variant="outline">
+                <Button variant="outline" onClick={downloadExcel}>
                     <Icons.download className="mr-2 h-4 w-4" />
                     Excel İndir
                 </Button>

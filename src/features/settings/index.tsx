@@ -35,6 +35,7 @@ import { Icons } from '@/lib/icons'
 
 const kioskSchema = z.object({
     name: z.string().min(2, 'Kiosk adı en az 2 karakter olmalı'),
+    kioskId: z.string().min(6, 'Kiosk ID en az 6 karakter olmalı').max(12, 'Kiosk ID en fazla 12 karakter olabilir'),
     pin: z.string().min(4, 'PIN en az 4 karakter olmalı').max(8, 'PIN en fazla 8 karakter olabilir'),
 })
 
@@ -53,6 +54,7 @@ export function SettingsPage() {
         resolver: zodResolver(kioskSchema),
         defaultValues: {
             name: '',
+            kioskId: '',
             pin: '',
         },
     })
@@ -61,6 +63,7 @@ export function SettingsPage() {
         const newKiosk: KioskAccount = {
             id: crypto.randomUUID(),
             name: data.name,
+            kioskId: data.kioskId.toUpperCase(),
             companyId: company?.id || '',
             pin: data.pin,
             createdAt: new Date().toISOString(),
@@ -108,7 +111,7 @@ export function SettingsPage() {
                     <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                         <div>
                             <p className="font-mono font-medium text-lg">{company?.id}</p>
-                            <p className="text-sm text-muted-foreground">Şirket ID (Kiosk girişi için gerekli)</p>
+                            <p className="text-sm text-muted-foreground">Şirket ID</p>
                         </div>
                         <Button
                             variant="outline"
@@ -195,6 +198,19 @@ export function SettingsPage() {
                                     />
                                     <FormField
                                         control={form.control}
+                                        name="kioskId"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Kiosk ID</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="KIOSK-001" className="uppercase" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
                                         name="pin"
                                         render={({ field }) => (
                                             <FormItem>
@@ -233,7 +249,7 @@ export function SettingsPage() {
                                 <AlertTitle>Kiosk Nasıl Açılır?</AlertTitle>
                                 <AlertDescription>
                                     Kiosk cihazında <code className="bg-muted px-1 rounded">/kiosk/login</code> adresine gidin.
-                                    <strong> Şirket ID</strong> ve <strong>PIN</strong> bilgilerini girin.
+                                    <strong> Kiosk ID</strong> ve <strong>PIN</strong> bilgilerini girin.
                                 </AlertDescription>
                             </Alert>
 
@@ -248,31 +264,39 @@ export function SettingsPage() {
                                         </div>
                                         <div>
                                             <p className="font-medium">{kiosk.name}</p>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-sm text-muted-foreground">PIN:</span>
-                                                <code className="bg-muted px-2 py-0.5 rounded text-sm font-mono">
-                                                    {showPins[kiosk.id] ? kiosk.pin : '••••'}
-                                                </code>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-6 w-6"
-                                                    onClick={() => togglePinVisibility(kiosk.id)}
-                                                >
-                                                    {showPins[kiosk.id] ? (
-                                                        <Icons.eyeOff className="h-3 w-3" />
-                                                    ) : (
-                                                        <Icons.eye className="h-3 w-3" />
-                                                    )}
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-6 w-6"
-                                                    onClick={() => copyToClipboard(kiosk.pin, 'PIN')}
-                                                >
-                                                    <Icons.copy className="h-3 w-3" />
-                                                </Button>
+                                            <div className="flex items-center gap-3 mt-1">
+                                                <div className="flex items-center gap-1">
+                                                    <span className="text-sm text-muted-foreground">ID:</span>
+                                                    <code className="bg-muted px-2 py-0.5 rounded text-sm font-mono">
+                                                        {kiosk.kioskId}
+                                                    </code>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <span className="text-sm text-muted-foreground">PIN:</span>
+                                                    <code className="bg-muted px-2 py-0.5 rounded text-sm font-mono">
+                                                        {showPins[kiosk.id] ? kiosk.pin : '••••'}
+                                                    </code>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-6 w-6"
+                                                        onClick={() => togglePinVisibility(kiosk.id)}
+                                                    >
+                                                        {showPins[kiosk.id] ? (
+                                                            <Icons.eyeOff className="h-3 w-3" />
+                                                        ) : (
+                                                            <Icons.eye className="h-3 w-3" />
+                                                        )}
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-6 w-6"
+                                                        onClick={() => copyToClipboard(kiosk.pin, 'PIN')}
+                                                    >
+                                                        <Icons.copy className="h-3 w-3" />
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

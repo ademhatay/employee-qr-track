@@ -5,7 +5,6 @@ import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { Icons } from '@/lib/icons'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
 export function KioskDisplay() {
@@ -14,11 +13,6 @@ export function KioskDisplay() {
     const [currentTime, setCurrentTime] = useState(new Date())
     const [countdown, setCountdown] = useState(30)
     const [isRefreshing, setIsRefreshing] = useState(false)
-    const [statusBanner, setStatusBanner] = useState<{
-        type: 'in' | 'out'
-        name: string
-    } | null>(null)
-    const [isAlertLocked, setIsAlertLocked] = useState(false)
 
     // Update time every second
     useEffect(() => {
@@ -53,27 +47,6 @@ export function KioskDisplay() {
 
     // Progress percentage for circular indicator
     const progressPercentage = (countdown / 30) * 100
-
-    useEffect(() => {
-        if (!statusBanner) {
-            return
-        }
-
-        const timer = window.setTimeout(() => {
-            setStatusBanner(null)
-            setIsAlertLocked(false)
-        }, 8000)
-
-        return () => window.clearTimeout(timer)
-    }, [statusBanner])
-
-    const triggerDemoStatus = (type: 'in' | 'out') => {
-        setIsAlertLocked(true)
-        setStatusBanner({
-            type,
-            name: 'Demo Kullanıcı',
-        })
-    }
 
     return (
         <div className="min-h-screen bg-sketchy-bg-primary relative overflow-hidden">
@@ -143,62 +116,6 @@ export function KioskDisplay() {
                                 </p>
                             </CardContent>
                         </Card>
-
-                        {/* Instructions Card */}
-                        <Card sketchy texture="paper" className="shadow-sketchy-md bg-sketchy-bg-secondary/50">
-                            <CardContent sketchy className="pt-4 space-y-4">
-                                <div>
-                                    <p className="body-organic-small text-sketchy-primary font-medium mb-3">
-                                        QR kodu telefonunuzla tarayın
-                                    </p>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2 p-2 rounded-lg bg-sketchy-bg-primary border border-sketchy-border-muted border-dashed">
-                                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sketchy-accent-green/10">
-                                                <Icons.signIn className="w-4 h-4 text-sketchy-accent-green" />
-                                            </div>
-                                            <span className="body-organic-small text-sketchy-text-secondary">
-                                                Giriş için tıklayın
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-2 p-2 rounded-lg bg-sketchy-bg-primary border border-sketchy-border-muted border-dashed">
-                                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sketchy-accent-red/10">
-                                                <Icons.signOut className="w-4 h-4 text-sketchy-accent-red" />
-                                            </div>
-                                            <span className="body-organic-small text-sketchy-text-secondary">
-                                                Çıkış için tıklayın
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Demo Buttons */}
-                                <div className="pt-2 flex flex-col gap-2">
-                                    <p className="body-organic-small text-sketchy-text-muted text-xs mb-2">
-                                        Test için demo butonlarını kullanın
-                                    </p>
-                                    <Button
-                                        variant="sketchy"
-                                        className="w-full h-11 shadow-sketchy-sm hover:shadow-sketchy-md"
-                                        onClick={() => triggerDemoStatus('in')}
-                                    >
-                                        <span className="flex items-center justify-center gap-2">
-                                            <Icons.signIn className="w-5 h-5" />
-                                            Demo Giriş
-                                        </span>
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        className="w-full h-11 border-organic-md hover:bg-sketchy-accent-red/10 hover:border-sketchy-accent-red/30"
-                                        onClick={() => triggerDemoStatus('out')}
-                                    >
-                                        <span className="flex items-center justify-center gap-2">
-                                            <Icons.signOut className="w-5 h-5" />
-                                            Demo Çıkış
-                                        </span>
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
                     </section>
 
                     {/* Right Section - QR Code */}
@@ -253,67 +170,6 @@ export function KioskDisplay() {
                         Employee QR Track • Kiosk v1.0
                     </p>
                 </footer>
-            </div>
-
-            {/* Status Banner Overlay */}
-            <div
-                className={`fixed inset-0 z-50 flex items-center justify-center px-6 transition-all duration-500 ${
-                    statusBanner ? 'opacity-100' : 'pointer-events-none opacity-0'
-                }`}
-            >
-                <div className={`absolute inset-0 ${
-                    isAlertLocked
-                        ? statusBanner?.type === 'in'
-                            ? 'bg-sketchy-accent-green/15'
-                            : 'bg-sketchy-accent-red/15'
-                        : 'bg-transparent'
-                }`} />
-                <div className={`relative w-full max-w-lg p-6 lg:p-8 text-center rounded-3xl border-2xl border-dashed shadow-sketchy-lg backdrop-blur-xl ${
-                    isAlertLocked
-                        ? statusBanner?.type === 'in'
-                            ? 'bg-sketchy-accent-green/90 text-white border-sketchy-accent-green/30'
-                            : 'bg-sketchy-accent-red/90 text-white border-sketchy-accent-red/30'
-                        : 'bg-sketchy-bg-primary text-sketchy-primary border-sketchy-border-muted'
-                }`}>
-                    <div className="inline-flex items-center justify-center gap-3 mb-4 h-16 w-16 rounded-2xl border-2 border-white/20 bg-white/10">
-                        {isAlertLocked && statusBanner?.type === 'in' ? (
-                            <Icons.signIn className="w-8 h-8" />
-                        ) : isAlertLocked && statusBanner?.type === 'out' ? (
-                            <Icons.signOut className="w-8 h-8" />
-                        ) : (
-                            <Icons.qrCode className="w-8 h-8" />
-                        )}
-                    </div>
-                    <h2 className="heading-organic-2 mb-2">
-                        {statusBanner?.name}
-                    </h2>
-                    <p className="body-organic text-white/90 mb-4">
-                        {statusBanner?.type === 'in' 
-                            ? 'Giriş başarılı. İyi çalışmalar!' 
-                            : 'Çıkış başarılı. İyi dinlenmeler!'
-                        }
-                    </p>
-                    <Badge 
-                        variant="secondary" 
-                        className={`border-white/20 text-sm py-2 px-4 inline-flex gap-2 ${
-                            isAlertLocked
-                                ? 'text-white/90 bg-white/10'
-                                : 'text-sketchy-primary bg-sketchy-accent-blue/10'
-                        }`}
-                    >
-                        {isAlertLocked ? (
-                            <>
-                                <Icons.qrCode className="w-4 h-4" />
-                                QR Kod Tarandı
-                            </>
-                        ) : (
-                            <>
-                                <Icons.spinner className="w-4 h-4 animate-spin" />
-                                İşleniyor...
-                            </>
-                        )}
-                    </Badge>
-                </div>
             </div>
         </div>
     )

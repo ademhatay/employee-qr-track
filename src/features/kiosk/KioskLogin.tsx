@@ -20,7 +20,7 @@ import { Badge } from '@/components/ui/badge'
 import { Link } from '@tanstack/react-router'
 
 const kioskLoginSchema = z.object({
-    companyCode: z.string().min(1, 'Şirket ID gerekli'),
+    kioskId: z.string().min(1, 'Kiosk ID gerekli'),
     pin: z.string().min(4, 'PIN en az 4 karakter olmalı'),
 })
 
@@ -33,19 +33,19 @@ export function KioskLogin() {
     const form = useForm<KioskLoginFormValues>({
         resolver: zodResolver(kioskLoginSchema),
         defaultValues: {
-            companyCode: '',
+            kioskId: '',
             pin: '',
         },
     })
 
     const onSubmit = async (data: KioskLoginFormValues) => {
-        const success = loginKiosk(data.pin, data.companyCode)
+        const success = loginKiosk(data.pin, data.kioskId)
 
         if (success) {
             toast.success('Kiosk girişi başarılı!')
             navigate({ to: '/kiosk' })
         } else {
-            toast.error('Geçersiz şirket kodu veya PIN')
+            toast.error('Geçersiz kiosk ID veya PIN')
         }
     }
 
@@ -109,25 +109,25 @@ export function KioskLogin() {
                                 Kiosk Bilgileri
                             </CardTitle>
                             <CardDescription sketchy className="body-organic-small text-sketchy-text-secondary">
-                                Şirket ID ve PIN kodunu giriniz
+                                Kiosk ID ve PIN kodunu giriniz
                             </CardDescription>
                         </CardHeader>
                         <CardContent sketchy className="pt-0 space-y-5">
                             <Form {...form}>
                                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                                    {/* Company Code Field */}
+                                    {/* Kiosk ID Field */}
                                     <FormField
                                         control={form.control}
-                                        name="companyCode"
+                                        name="kioskId"
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel className="flex items-center gap-2 body-organic-small text-sketchy-primary">
-                                                    <Icons.building className="w-4 h-4 text-sketchy-accent-blue" />
-                                                    Şirket ID
+                                                    <Icons.qrCode className="w-4 h-4 text-sketchy-accent-blue" />
+                                                    Kiosk ID
                                                 </FormLabel>
                                                 <FormControl>
                                                     <Input
-                                                        placeholder="Örn: DEMO-KIOSK"
+                                                        placeholder="Örn: KIOSK-001"
                                                         className="h-12 border-organic-md"
                                                         {...field}
                                                     />
@@ -200,10 +200,10 @@ export function KioskLogin() {
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between p-2 rounded-lg bg-sketchy-bg-primary border border-sketchy-border-muted border-dashed">
                                             <span className="body-organic-small text-sketchy-text-secondary">
-                                                Şirket ID:
+                                                Kiosk ID:
                                             </span>
                                             <Badge variant="secondary" className="border-organic-sm text-xs">
-                                                DEMO-KIOSK
+                                                KIOSK-001
                                             </Badge>
                                         </div>
                                         <div className="flex items-center justify-between p-2 rounded-lg bg-sketchy-bg-primary border border-sketchy-border-muted border-dashed">

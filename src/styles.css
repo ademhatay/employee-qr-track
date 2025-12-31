@@ -1182,11 +1182,74 @@ code {
   }
 }
 
-/* Hover effect for cards */
+/* Hover effect for cards - NO SCALE to prevent text blur */
 .card-organic:hover {
-  transform: rotate(0.2deg) translateY(-2px);
+  transform: rotate(0.2deg) translateY(-2px) !important;
   box-shadow: var(--shadow-sketchy-md);
   transition: all var(--timing-sketchy-normal);
+  will-change: transform, box-shadow;
+}
+
+/* Override ANY scale transform on card hover - highest specificity to override Tailwind */
+div.card-organic:hover,
+div[data-slot="card"].card-organic:hover,
+.card-organic.hover-organic:hover,
+.card-organic[class*="scale"]:hover,
+.card-organic[class*="hover:scale"]:hover {
+  transform: rotate(0.2deg) translateY(-2px) !important;
+  will-change: transform, box-shadow;
+}
+
+/* Override Tailwind's scale utilities specifically */
+.card-organic.hover\:scale-105:hover {
+  transform: rotate(0.2deg) translateY(-2px) !important;
+}
+
+/* Force GPU acceleration on card container */
+.card-organic {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  backface-visibility: hidden;
+}
+
+/* Ensure all text inside cards remains sharp on hover */
+.card-organic:hover * {
+  text-shadow: none !important;
+  filter: none !important;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Specifically target all text elements inside cards - force GPU layer */
+.card-organic:hover .text-over-texture,
+.card-organic:hover .text-sketchy-primary,
+.card-organic:hover .text-sketchy-text-secondary,
+.card-organic:hover .text-sketchy-text-muted,
+.card-organic:hover .body-organic,
+.card-organic:hover .body-organic-small,
+.card-organic:hover .label-organic,
+.card-organic:hover .heading-organic,
+.card-organic:hover .heading-organic-1,
+.card-organic:hover .heading-organic-2,
+.card-organic:hover .heading-organic-3,
+.card-organic:hover .heading-organic-4,
+.card-organic:hover .heading-organic-5,
+.card-organic:hover .heading-organic-6,
+.card-organic:hover p,
+.card-organic:hover span,
+.card-organic:hover div,
+.card-organic:hover h1,
+.card-organic:hover h2,
+.card-organic:hover h3,
+.card-organic:hover h4,
+.card-organic:hover h5,
+.card-organic:hover h6 {
+  text-shadow: none !important;
+  filter: none !important;
+  transform: translateZ(0) !important;
+  will-change: auto;
+  isolation: isolate;
 }
 
 /* Reduce motion for accessibility */

@@ -136,7 +136,7 @@ export function DashboardOverview() {
                             key={stat.title}
                             sketchy
                             texture="paper"
-                            className="shadow-sketchy-md hover:shadow-sketchy-lg transition-all duration-300 hover:scale-105"
+                            className="shadow-sketchy-md hover:shadow-sketchy-lg transition-all duration-300"
                         >
                             <CardHeader sketchy className="space-y-3 pb-3">
                                 <div className="flex items-start justify-between">

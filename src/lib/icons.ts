@@ -15,6 +15,7 @@ import {
   Plus,
   X,
   Check,
+  ChartBar,
   CaretDown,
   CaretUp,
   CaretRight,
@@ -62,6 +63,7 @@ import {
   CheckCircle,
   XCircle,
   Info,
+  Shield,
   Warning,
   WarningOctagon,
   
@@ -246,4 +248,15 @@ export const largeIconProps: IconProps = {
 export const smallIconProps: IconProps = {
   size: 16,
   weight: 'regular',
+}
+
+export {
+  ArrowRight,
+  CheckCircle,
+  Clock,
+  QrCode,
+  Shield,
+  Star,
+  Users,
+  ChartBar as BarChart3,
 }

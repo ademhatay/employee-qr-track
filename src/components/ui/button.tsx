@@ -21,9 +21,9 @@ const buttonVariants = cva(
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 rounded-md",
         link: "text-primary underline-offset-4 hover:underline",
         // New sketchy variants
-        sketchy: "bg-sketchy-primary text-black hover:bg-sketchy-primary-light btn-organic button-shadow-organic font-display-primary",
+        sketchy: "bg-sketchy-primary text-sketchy-text-primary hover:bg-sketchy-primary-light btn-organic button-shadow-organic font-display-primary",
         "sketchy-outline": "border-sketchy border-sketchy-primary bg-sketchy-bg-primary text-sketchy-primary hover:bg-sketchy-bg-secondary btn-organic button-shadow-organic font-display-primary",
-        "sketchy-secondary": "bg-sketchy-secondary text-black hover:bg-sketchy-secondary-light btn-organic button-shadow-organic font-display-primary bg-texture-grain",
+        "sketchy-secondary": "bg-sketchy-secondary text-sketchy-text-primary hover:bg-sketchy-secondary-light btn-organic button-shadow-organic font-display-primary bg-texture-grain",
         "sketchy-ghost": "text-sketchy-primary hover:bg-sketchy-bg-secondary hover-organic btn-organic font-display-primary",
       },
       size: {

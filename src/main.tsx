@@ -10,6 +10,23 @@ import { routeTree } from './routeTree.gen'
 import './styles.css'
 import reportWebVitals from './reportWebVitals.ts'
 
+// Initialize theme from localStorage before React renders
+const THEME_STORAGE_KEY = 'employee-qr-theme'
+if (typeof window !== 'undefined') {
+  const storedTheme = localStorage.getItem(THEME_STORAGE_KEY)
+  if (storedTheme === 'dark') {
+    document.documentElement.classList.add('dark')
+  } else if (storedTheme === 'light') {
+    document.documentElement.classList.remove('dark')
+  } else {
+    // Default to system preference if no stored theme
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    if (prefersDark) {
+      document.documentElement.classList.add('dark')
+    }
+  }
+}
+
 // Create a new router instance
 
 const TanStackQueryProviderContext = TanStackQueryProvider.getContext()

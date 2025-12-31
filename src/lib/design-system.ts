@@ -721,11 +721,26 @@ export function combineClasses(...classes: (string | undefined | null | false)[]
 // THEME UTILITIES
 // ========================================
 
+const THEME_STORAGE_KEY = 'employee-qr-theme';
+
 /**
  * Check if dark theme is currently active
  */
 export function isDarkTheme(): boolean {
   if (typeof window !== 'undefined') {
+    // Check localStorage first
+    const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (storedTheme !== null) {
+      const isDark = storedTheme === 'dark';
+      // Sync the DOM class with localStorage
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      return isDark;
+    }
+    // Fall back to checking the class
     return document.documentElement.classList.contains('dark');
   }
   return false;
@@ -736,7 +751,12 @@ export function isDarkTheme(): boolean {
  */
 export function toggleTheme(): void {
   if (typeof window !== 'undefined') {
-    document.documentElement.classList.toggle('dark');
+    const isDark = document.documentElement.classList.contains('dark');
+    if (isDark) {
+      setTheme('light');
+    } else {
+      setTheme('dark');
+    }
   }
 }
 
@@ -750,6 +770,8 @@ export function setTheme(theme: 'light' | 'dark'): void {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    // Persist to localStorage
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
   }
 }
 
