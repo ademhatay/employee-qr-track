@@ -11,12 +11,8 @@ import {
     FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useAuthStore } from '@/lib/store'
 import { toast } from 'sonner'
-import { Icons } from '@/lib/icons'
-import { Badge } from '@/components/ui/badge'
 
 const registerSchema = z.object({
     name: z.string().min(2, 'İsim en az 2 karakter olmalı'),
@@ -56,242 +52,249 @@ export function RegisterForm() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-sketchy-bg-primary relative overflow-hidden">
-            {/* Background texture overlay */}
-            <div className="absolute inset-0 bg-texture-adaptive-paper opacity-40 pointer-events-none" />
+        <div className="min-h-screen text-charcoal overflow-x-hidden font-display flex flex-col kiosk-paper-bg">
+            {/* Header */}
+            <header className="w-full px-8 py-6 flex justify-between items-center relative z-20">
+                {/* Logo */}
+                <Link to="/" className="sketch-border-sm bg-white px-4 py-2 transform -rotate-1 flex items-center gap-2 hover:bg-gray-50 transition-colors">
+                    <span className="material-symbols-outlined text-charcoal text-2xl">qr_code_scanner</span>
+                    <span className="font-hand font-bold text-lg">QR Track</span>
+                </Link>
 
-            <div className="relative z-10 w-full max-w-lg p-4 sm:p-6 lg:p-8">
-                {/* Header Section */}
-                <div className="text-center mb-6 space-y-3">
-                    {/* Logo */}
-                    <div className="flex justify-center">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-sketchy-accent-green border-organic-md shadow-sketchy-md">
-                            <Icons.userPlus className="w-7 h-7 text-white" />
-                        </div>
-                    </div>
+                {/* Login Link */}
+                <Link
+                    to="/auth/login"
+                    className="sketch-border-sm bg-white px-4 py-2 transform rotate-1 flex items-center gap-2 hover:bg-gray-50 transition-colors"
+                >
+                    <span className="material-symbols-outlined text-charcoal text-lg">login</span>
+                    <span className="font-hand font-bold text-sm">Sign In</span>
+                </Link>
+            </header>
 
-                    {/* Title and Description */}
-                    <div className="space-y-1">
-                        <h1 className="heading-organic-2 text-sketchy-primary">
-                            Hesap Oluştur
-                        </h1>
-                        <p className="body-organic-small text-sketchy-text-secondary">
-                            Çalışan takip sisteminize katılın
-                        </p>
-                    </div>
-
-                    {/* Badges */}
-                    <div className="flex flex-wrap items-center justify-center gap-2">
-                        <Badge variant="secondary" className="border-organic-sm text-xs">
-                            <Icons.heart className="w-3 h-3 mr-1" />
-                            Ücretsiz Deneme
-                        </Badge>
-                        <Badge variant="secondary" className="border-organic-sm text-xs">
-                            14 Gün
-                        </Badge>
-                    </div>
-                </div>
-
-                {/* Register Card */}
-                <Card sketchy texture="paper" className="shadow-sketchy-lg">
-                    <CardHeader sketchy className="space-y-1 pb-4">
-                        <CardTitle sketchy className="heading-organic-4">
-                            Kayıt Ol
-                        </CardTitle>
-                        <CardDescription sketchy className="body-organic-small">
-                            Bilgilerinizi doldurarak hesap oluşturun
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent sketchy className="pt-0">
-                        <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-                                {/* Name Field */}
-                                <FormField
-                                    control={form.control}
-                                    name="name"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="flex items-center gap-2 body-organic-small">
-                                                <Icons.user className="w-4 h-4 text-sketchy-accent-green" />
-                                                Ad Soyad
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    placeholder="Ahmet Yılmaz"
-                                                    className="border-organic-md h-10"
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                {/* Email Field */}
-                                <FormField
-                                    control={form.control}
-                                    name="email"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="flex items-center gap-2 body-organic-small">
-                                                <Icons.mail className="w-4 h-4 text-sketchy-accent-green" />
-                                                E-posta
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    type="email"
-                                                    placeholder="ornek@sirket.com"
-                                                    className="border-organic-md h-10"
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                {/* Password Field */}
-                                <FormField
-                                    control={form.control}
-                                    name="password"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="flex items-center gap-2 body-organic-small">
-                                                <Icons.lock className="w-4 h-4 text-sketchy-accent-green" />
-                                                Şifre
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    type="password"
-                                                    placeholder="••••••••"
-                                                    className="border-organic-md h-10"
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                {/* Confirm Password Field */}
-                                <FormField
-                                    control={form.control}
-                                    name="confirmPassword"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="flex items-center gap-2 body-organic-small">
-                                                <Icons.lock className="w-4 h-4 text-sketchy-accent-green" />
-                                                Şifre Tekrar
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    type="password"
-                                                    placeholder="••••••••"
-                                                    className="border-organic-md h-10"
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                {/* Submit Button */}
-                                <Button
-                                    type="submit"
-                                    variant="sketchy"
-                                    size="lg"
-                                    className="w-full h-11"
-                                    disabled={form.formState.isSubmitting}
-                                >
-                                    {form.formState.isSubmitting ? (
-                                        <span className="flex items-center gap-2">
-                                            <Icons.spinner className="w-4 h-4 animate-spin" />
-                                            Kayıt yapılıyor...
-                                        </span>
-                                    ) : (
-                                        <span className="flex items-center gap-2">
-                                            Kayıt Ol
-                                            <Icons.arrowRight className="w-4 h-4" />
-                                        </span>
-                                    )}
-                                </Button>
-                            </form>
-                        </Form>
-
-                        {/* Divider */}
-                        <div className="relative my-4">
-                            <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t border-sketchy-border-muted border-dashed" />
-                            </div>
-                            <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-card px-2 text-sketchy-text-muted">
-                                    veya
-                                </span>
+            {/* Main Content */}
+            <main className="flex-1 flex items-center justify-center p-8">
+                <div className="w-full max-w-md space-y-8">
+                    {/* Title Section */}
+                    <div className="text-center space-y-4">
+                        {/* Icon with Sticky Note Style */}
+                        <div className="relative inline-block">
+                            <div className="absolute inset-0 bg-green-200 border-2 border-charcoal transform rotate-3 rounded-lg"></div>
+                            <div className="relative bg-green-100 border-2 border-charcoal p-6 rounded-lg">
+                                <span className="material-symbols-outlined text-6xl text-charcoal">person_add</span>
                             </div>
                         </div>
 
-                        {/* Login Link */}
-                        <div className="text-center">
-                            <p className="body-organic-small text-sketchy-text-secondary">
-                                Zaten hesabınız var mı?{' '}
-                                <Link
-                                    to="/auth/login"
-                                    className="text-sketchy-accent-green hover:text-sketchy-accent-green/80 transition-colors font-medium inline-flex items-center gap-1"
-                                >
-                                    Giriş Yap
-                                    <Icons.arrowRight className="w-3 h-3" />
-                                </Link>
+                        <div className="space-y-2 pt-4">
+                            <h1 className="text-4xl lg:text-5xl font-hand font-bold text-charcoal wiggle-slow">
+                                Create Account
+                            </h1>
+                            <p className="font-display text-gray-600">
+                                Join our employee tracking platform
                             </p>
                         </div>
-                    </CardContent>
-                </Card>
 
-                {/* Features */}
-                <div className="mt-6 grid grid-cols-3 gap-3">
-                    <div className="text-center space-y-1">
-                        <div className="flex justify-center">
-                            <div className="h-9 w-9 rounded-xl bg-sketchy-accent-blue/10 flex items-center justify-center border-organic-sm">
-                                <Icons.qrCode className="w-4 h-4 text-sketchy-accent-blue" />
-                            </div>
+                        {/* Trial Badge */}
+                        <div className="inline-flex items-center gap-2 bg-green-100 border-2 border-green-300 rounded-full px-4 py-2">
+                            <span className="material-symbols-outlined text-green-600">stars</span>
+                            <span className="font-hand font-bold text-green-800">14-Day Free Trial</span>
                         </div>
-                        <p className="body-organic-small text-sketchy-text-muted text-[10px]">
-                            QR Kod
-                        </p>
                     </div>
-                    <div className="text-center space-y-1">
-                        <div className="flex justify-center">
-                            <div className="h-9 w-9 rounded-xl bg-sketchy-accent-green/10 flex items-center justify-center border-organic-sm">
-                                <Icons.trending className="w-4 h-4 text-sketchy-accent-green" />
+
+                    {/* Register Form Card */}
+                    <div className="relative">
+                        {/* Card Shadow */}
+                        <div className="absolute inset-0 bg-charcoal transform translate-x-2 translate-y-2 rounded-lg"></div>
+
+                        {/* Main Card */}
+                        <div className="relative bg-white sketch-border p-8 space-y-6">
+                            {/* Form Header */}
+                            <div className="flex items-center gap-3 pb-4 border-b-2 border-dashed border-gray-200">
+                                <div className="p-2 bg-green-100 rounded-lg border border-green-200">
+                                    <span className="material-symbols-outlined text-green-600">how_to_reg</span>
+                                </div>
+                                <div>
+                                    <h2 className="font-hand font-bold text-xl text-charcoal">Sign Up</h2>
+                                    <p className="text-sm text-gray-500 font-display">Fill in your details</p>
+                                </div>
+                            </div>
+
+                            <Form {...form}>
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                                    {/* Name Field */}
+                                    <FormField
+                                        control={form.control}
+                                        name="name"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="flex items-center gap-2 font-hand font-bold text-charcoal">
+                                                    <span className="material-symbols-outlined text-lg text-green-600">person</span>
+                                                    Full Name
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <div className="relative">
+                                                        <Input
+                                                            placeholder="John Doe"
+                                                            className="h-12 text-lg border-2 border-charcoal rounded-lg bg-white focus:ring-2 focus:ring-green-400 focus:border-green-400 pl-12"
+                                                            {...field}
+                                                        />
+                                                        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">badge</span>
+                                                    </div>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    {/* Email Field */}
+                                    <FormField
+                                        control={form.control}
+                                        name="email"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="flex items-center gap-2 font-hand font-bold text-charcoal">
+                                                    <span className="material-symbols-outlined text-lg text-green-600">email</span>
+                                                    Email Address
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <div className="relative">
+                                                        <Input
+                                                            type="email"
+                                                            placeholder="you@company.com"
+                                                            className="h-12 text-lg border-2 border-charcoal rounded-lg bg-white focus:ring-2 focus:ring-green-400 focus:border-green-400 pl-12"
+                                                            {...field}
+                                                        />
+                                                        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">alternate_email</span>
+                                                    </div>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    {/* Password Field */}
+                                    <FormField
+                                        control={form.control}
+                                        name="password"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="flex items-center gap-2 font-hand font-bold text-charcoal">
+                                                    <span className="material-symbols-outlined text-lg text-green-600">lock</span>
+                                                    Password
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <div className="relative">
+                                                        <Input
+                                                            type="password"
+                                                            placeholder="••••••••"
+                                                            className="h-12 text-lg border-2 border-charcoal rounded-lg bg-white focus:ring-2 focus:ring-green-400 focus:border-green-400 pl-12"
+                                                            {...field}
+                                                        />
+                                                        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">password</span>
+                                                    </div>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    {/* Confirm Password Field */}
+                                    <FormField
+                                        control={form.control}
+                                        name="confirmPassword"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="flex items-center gap-2 font-hand font-bold text-charcoal">
+                                                    <span className="material-symbols-outlined text-lg text-green-600">lock_reset</span>
+                                                    Confirm Password
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <div className="relative">
+                                                        <Input
+                                                            type="password"
+                                                            placeholder="••••••••"
+                                                            className="h-12 text-lg border-2 border-charcoal rounded-lg bg-white focus:ring-2 focus:ring-green-400 focus:border-green-400 pl-12"
+                                                            {...field}
+                                                        />
+                                                        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">verified_user</span>
+                                                    </div>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    {/* Submit Button */}
+                                    <div className="pt-2">
+                                        <button
+                                            type="submit"
+                                            disabled={form.formState.isSubmitting}
+                                            className="w-full h-14 bg-green-600 text-white rounded-lg font-hand font-bold text-xl hover:bg-green-700 transition-all transform hover:-translate-y-1 active:translate-y-0 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-charcoal flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {form.formState.isSubmitting ? (
+                                                <>
+                                                    <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                                                    Creating...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Create Account
+                                                    <span className="material-symbols-outlined">arrow_forward</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </form>
+                            </Form>
+
+                            {/* Login Link */}
+                            <div className="text-center pt-6 border-t-2 border-dashed border-gray-200 mt-6">
+                                <p className="font-display text-gray-600">
+                                    Already have an account?{' '}
+                                    <Link
+                                        to="/auth/login"
+                                        className="text-green-600 hover:text-green-700 font-bold inline-flex items-center gap-1 transition-colors"
+                                    >
+                                        Sign In
+                                        <span className="material-symbols-outlined text-base">arrow_forward</span>
+                                    </Link>
+                                </p>
                             </div>
                         </div>
-                        <p className="body-organic-small text-sketchy-text-muted text-[10px]">
-                            Raporlar
-                        </p>
                     </div>
-                    <div className="text-center space-y-1">
-                        <div className="flex justify-center">
-                            <div className="h-9 w-9 rounded-xl bg-sketchy-accent-purple/10 flex items-center justify-center border-organic-sm">
-                                <Icons.lock className="w-4 h-4 text-sketchy-accent-purple" />
+
+                    {/* Features - Three Columns */}
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="relative group">
+                            <div className="absolute inset-0 bg-blue-200 border-2 border-charcoal transform rotate-2 rounded-lg"></div>
+                            <div className="relative bg-blue-100 border-2 border-charcoal p-4 rounded-lg text-center">
+                                <span className="material-symbols-outlined text-3xl text-blue-600 mb-2">qr_code_scanner</span>
+                                <p className="font-hand font-bold text-charcoal text-sm">QR Scanning</p>
                             </div>
                         </div>
-                        <p className="body-organic-small text-sketchy-text-muted text-[10px]">
-                            Güvenli
-                        </p>
+                        <div className="relative group">
+                            <div className="absolute inset-0 bg-purple-200 border-2 border-charcoal transform -rotate-1 rounded-lg"></div>
+                            <div className="relative bg-purple-100 border-2 border-charcoal p-4 rounded-lg text-center">
+                                <span className="material-symbols-outlined text-3xl text-purple-600 mb-2">analytics</span>
+                                <p className="font-hand font-bold text-charcoal text-sm">Reports</p>
+                            </div>
+                        </div>
+                        <div className="relative group">
+                            <div className="absolute inset-0 bg-orange-200 border-2 border-charcoal transform rotate-1 rounded-lg"></div>
+                            <div className="relative bg-orange-100 border-2 border-charcoal p-4 rounded-lg text-center">
+                                <span className="material-symbols-outlined text-3xl text-orange-600 mb-2">security</span>
+                                <p className="font-hand font-bold text-charcoal text-sm">Secure</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </main>
 
-                {/* Back to Home */}
-                <div className="mt-4 text-center">
-                    <Link
-                        to="/"
-                        className="body-organic-small text-sketchy-text-muted hover:text-sketchy-primary transition-colors inline-flex items-center gap-1 text-xs"
-                    >
-                        <Icons.arrowLeft className="w-3 h-3" />
-                        Ana sayfaya dön
-                    </Link>
-                </div>
-            </div>
+            {/* Footer */}
+            <footer className="w-full py-6 text-center relative z-10">
+                <p className="font-hand text-charcoal/60 text-sm">
+                    Powered by <span className="font-bold text-charcoal">QR Track</span> • Employee Tracking System
+                </p>
+            </footer>
         </div>
     )
 }

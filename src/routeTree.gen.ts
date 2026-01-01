@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -24,8 +25,14 @@ import { Route as DashboardEmployeesRouteImport } from './routes/dashboard/emplo
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AppScanRouteImport } from './routes/app/scan'
+import { Route as AppProfileRouteImport } from './routes/app/profile'
 import { Route as AppHistoryRouteImport } from './routes/app/history'
 
+const ScheduleRoute = ScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -101,6 +108,11 @@ const AppScanRoute = AppScanRouteImport.update({
   path: '/scan',
   getParentRoute: () => AppRoute,
 } as any)
+const AppProfileRoute = AppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppHistoryRoute = AppHistoryRouteImport.update({
   id: '/history',
   path: '/history',
@@ -113,7 +125,9 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/dashboard': typeof DashboardRouteWithChildren
   '/onboarding': typeof OnboardingRoute
+  '/schedule': typeof ScheduleRoute
   '/app/history': typeof AppHistoryRoute
+  '/app/profile': typeof AppProfileRoute
   '/app/scan': typeof AppScanRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
@@ -129,7 +143,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
+  '/schedule': typeof ScheduleRoute
   '/app/history': typeof AppHistoryRoute
+  '/app/profile': typeof AppProfileRoute
   '/app/scan': typeof AppScanRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
@@ -148,7 +164,9 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/dashboard': typeof DashboardRouteWithChildren
   '/onboarding': typeof OnboardingRoute
+  '/schedule': typeof ScheduleRoute
   '/app/history': typeof AppHistoryRoute
+  '/app/profile': typeof AppProfileRoute
   '/app/scan': typeof AppScanRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
@@ -168,7 +186,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/onboarding'
+    | '/schedule'
     | '/app/history'
+    | '/app/profile'
     | '/app/scan'
     | '/auth/login'
     | '/auth/register'
@@ -184,7 +204,9 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/onboarding'
+    | '/schedule'
     | '/app/history'
+    | '/app/profile'
     | '/app/scan'
     | '/auth/login'
     | '/auth/register'
@@ -202,7 +224,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/onboarding'
+    | '/schedule'
     | '/app/history'
+    | '/app/profile'
     | '/app/scan'
     | '/auth/login'
     | '/auth/register'
@@ -221,12 +245,20 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   DashboardRoute: typeof DashboardRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
+  ScheduleRoute: typeof ScheduleRoute
   KioskLoginRoute: typeof KioskLoginRoute
   KioskIndexRoute: typeof KioskIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/schedule': {
+      id: '/schedule'
+      path: '/schedule'
+      fullPath: '/schedule'
+      preLoaderRoute: typeof ScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/onboarding': {
       id: '/onboarding'
       path: '/onboarding'
@@ -332,6 +364,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppScanRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/profile': {
+      id: '/app/profile'
+      path: '/profile'
+      fullPath: '/app/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/history': {
       id: '/app/history'
       path: '/history'
@@ -344,12 +383,14 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppHistoryRoute: typeof AppHistoryRoute
+  AppProfileRoute: typeof AppProfileRoute
   AppScanRoute: typeof AppScanRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppHistoryRoute: AppHistoryRoute,
+  AppProfileRoute: AppProfileRoute,
   AppScanRoute: AppScanRoute,
   AppIndexRoute: AppIndexRoute,
 }
@@ -392,6 +433,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   DashboardRoute: DashboardRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
+  ScheduleRoute: ScheduleRoute,
   KioskLoginRoute: KioskLoginRoute,
   KioskIndexRoute: KioskIndexRoute,
 }

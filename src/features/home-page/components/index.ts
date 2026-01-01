@@ -1,0 +1,5 @@
+export { Header } from './Header'
+export { Hero } from './Hero'
+export { SocialProof } from './SocialProof'
+export { Features } from './Features'
+export { Footer } from './Footer'

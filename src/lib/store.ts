@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Attendance, Company, Employee, User } from '@/types'
+import type { Attendance, Company, Employee, User, Shift } from '@/types'
 
 // Extended types for auth
 export interface AuthUser extends User {
@@ -34,6 +34,7 @@ interface AuthState {
     register: (name: string, email: string, password: string) => Promise<boolean>
     logout: () => void
     setCompany: (company: Company) => void
+    updateProfile: (data: Partial<AuthUser>) => void
 }
 
 interface DataState {
@@ -41,6 +42,8 @@ interface DataState {
     attendances: Array<Attendance>
     kioskAccounts: Array<KioskAccount>
     invitations: Array<Invitation>
+    shifts: Array<Shift>
+    scheduledEmployees: Array<{ id: string, colorIndex: number }>
     addEmployee: (employee: Employee) => void
     updateEmployee: (id: string, data: Partial<Employee>) => void
     removeEmployee: (id: string) => void
@@ -48,6 +51,8 @@ interface DataState {
     addKioskAccount: (kiosk: KioskAccount) => void
     addInvitation: (invitation: Invitation) => void
     acceptInvitation: (token: string, user: AuthUser) => boolean
+    setShifts: (shifts: Array<Shift>) => void
+    setScheduledEmployees: (employees: Array<{ id: string, colorIndex: number }>) => void
 }
 
 // Auth Store
@@ -155,6 +160,26 @@ export const useAuthStore = create<AuthState>()(
                     set({ company, user: { ...user, companyId: company.id } })
                 }
             },
+
+            updateProfile: (data: Partial<AuthUser>) => {
+                const { user } = get()
+                if (user) {
+                    const updatedUser = { ...user, ...data }
+
+                    // Update in localStorage
+                    const users = JSON.parse(localStorage.getItem('qr-track-users') || '[]') as Array<AuthUser>
+                    const idx = users.findIndex((u) => u.id === user.id)
+                    if (idx !== -1) {
+                        users[idx] = { ...users[idx], ...data }
+                        localStorage.setItem('qr-track-users', JSON.stringify(users))
+                    }
+
+                    // Update in data store as well if it exists there
+                    // This is handled by EmployeeProfile calling updateEmployee separately to keep them in sync
+
+                    set({ user: updatedUser })
+                }
+            },
         }),
         {
             name: 'qr-track-auth',
@@ -168,92 +193,104 @@ const generateDemoData = () => {
     const demoEmployees: Array<Employee> = [
         {
             id: 'emp-001',
-            name: 'Ahmet Yılmaz',
-            email: 'ahmet@demo.com',
+            name: 'Sarah Jenkins',
+            email: 'sarah@demo.com',
             role: 'employee',
-            position: 'Yazılım Geliştirici',
+            position: 'Marketing Manager',
             companyId: demoCompanyId,
             isActive: true,
             createdAt: new Date('2024-01-15').toISOString(),
         },
         {
             id: 'emp-002',
-            name: 'Ayşe Demir',
-            email: 'ayse@demo.com',
+            name: 'Mike Ross',
+            email: 'mike@demo.com',
             role: 'employee',
-            position: 'Tasarım Direktörü',
+            position: 'Legal Counsel',
             companyId: demoCompanyId,
             isActive: true,
             createdAt: new Date('2024-02-20').toISOString(),
         },
         {
             id: 'emp-003',
-            name: 'Mehmet Kaya',
-            email: 'mehmet@demo.com',
+            name: 'Harvey Specter',
+            email: 'harvey@demo.com',
             role: 'manager',
-            position: 'Proje Yöneticisi',
+            position: 'Senior Partner',
             companyId: demoCompanyId,
             isActive: true,
             createdAt: new Date('2024-03-10').toISOString(),
         },
         {
             id: 'emp-004',
-            name: 'Zeynep Arslan',
-            email: 'zeynep@demo.com',
+            name: 'Donna Paulsen',
+            email: 'donna@demo.com',
             role: 'employee',
-            position: 'İnsan Kaynakları',
+            position: 'COO',
             companyId: demoCompanyId,
             isActive: true,
             createdAt: new Date('2024-04-05').toISOString(),
         },
         {
             id: 'emp-005',
-            name: 'Can Öztürk',
-            email: 'can@demo.com',
+            name: 'Rachel Zane',
+            email: 'rachel@demo.com',
             role: 'employee',
-            position: 'Satış Temsilcisi',
+            position: 'Senior Associate',
             companyId: demoCompanyId,
             isActive: true,
             createdAt: new Date('2024-05-18').toISOString(),
         },
+        {
+            id: 'emp-006',
+            name: 'Louis Litt',
+            email: 'louis@demo.com',
+            role: 'manager',
+            position: 'Managing Partner',
+            companyId: demoCompanyId,
+            isActive: true,
+            createdAt: new Date('2024-06-12').toISOString(),
+        },
+        {
+            id: 'emp-007',
+            name: 'Jessica Pearson',
+            email: 'jessica@demo.com',
+            role: 'admin',
+            position: 'Founding Partner',
+            companyId: demoCompanyId,
+            isActive: true,
+            createdAt: new Date('2023-11-01').toISOString(),
+        },
     ]
 
-    const now = new Date()
-    // Use last month for demo data
-    const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-    const demoMonth = lastMonthDate.getMonth()
-    const demoYear = lastMonthDate.getFullYear()
     const demoAttendances: Array<Attendance> = []
+    const now = new Date()
 
-    // Create a pool of days to work on (spread across month, exclude weekends)
-    const daysInMonth = new Date(demoYear, demoMonth + 1, 0).getDate()
-    const workDays: Array<number> = []
-    for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(demoYear, demoMonth, day)
-        const dayOfWeek = date.getDay()
-        // Exclude weekends (Saturday=6, Sunday=0)
-        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-            workDays.push(day)
-        }
-    }
+    // Generate data for the last 35 days to ensure full month coverage
+    for (let i = 35; i >= 0; i--) {
+        const currentDate = new Date(now)
+        currentDate.setDate(now.getDate() - i)
 
-    demoEmployees.forEach((employee) => {
-        // Each employee works 70-80% of work days
-        const workPercentage = 0.7 + Math.random() * 0.1 // 70-80%
-        const daysWorked = Math.floor(workDays.length * workPercentage)
+        const dayOfWeek = currentDate.getDay()
+        // Skip weekends for most employees, but maybe keep some "extra" data
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
 
-        // Shuffle work days and select random subset
-        const shuffledDays = [...workDays].sort(() => Math.random() - 0.5)
-        const employeeWorkDays = shuffledDays.slice(0, daysWorked)
+        demoEmployees.forEach((employee) => {
+            // Chance of working: 90% on weekdays, 10% on weekends
+            const workChance = isWeekend ? 0.1 : 0.9
+            if (Math.random() > workChance) return
 
-        employeeWorkDays.forEach((day) => {
+            // Randomize times slightly
             const checkInHour = 8 + Math.floor(Math.random() * 2) // 8-9 AM
             const checkOutHour = 17 + Math.floor(Math.random() * 2) // 5-6 PM
             const checkInMinute = Math.floor(Math.random() * 60)
             const checkOutMinute = Math.floor(Math.random() * 60)
 
-            const checkInDate = new Date(demoYear, demoMonth, day, checkInHour, checkInMinute)
-            const checkOutDate = new Date(demoYear, demoMonth, day, checkOutHour, checkOutMinute)
+            const checkInDate = new Date(currentDate)
+            checkInDate.setHours(checkInHour, checkInMinute, 0)
+
+            const checkOutDate = new Date(currentDate)
+            checkOutDate.setHours(checkOutHour, checkOutMinute, 0)
 
             demoAttendances.push({
                 id: crypto.randomUUID(),
@@ -263,6 +300,7 @@ const generateDemoData = () => {
                 timestamp: checkInDate.toISOString(),
                 device: 'kiosk',
             })
+
             demoAttendances.push({
                 id: crypto.randomUUID(),
                 employeeId: employee.id,
@@ -272,7 +310,7 @@ const generateDemoData = () => {
                 device: 'kiosk',
             })
         })
-    })
+    }
 
     // Sort by timestamp
     demoAttendances.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
@@ -287,6 +325,8 @@ export const useDataStore = create<DataState>()(
             // Get initial state from persisted storage or use demo data
             let employees: Array<Employee> = []
             let attendances: Array<Attendance> = []
+            let shifts: Array<Shift> = []
+            let scheduledEmployees: Array<{ id: string, colorIndex: number }> = []
 
             // Try to get persisted data
             if (typeof window !== 'undefined') {
@@ -297,6 +337,8 @@ export const useDataStore = create<DataState>()(
                         if (parsed.state) {
                             employees = parsed.state.employees || []
                             attendances = parsed.state.attendances || []
+                            shifts = parsed.state.shifts || []
+                            scheduledEmployees = parsed.state.scheduledEmployees || []
                         }
                     }
                 } catch (e) {
@@ -311,12 +353,12 @@ export const useDataStore = create<DataState>()(
 
             if (!hasDemoEmployees || !hasDemoAttendances) {
                 const { demoEmployees, demoAttendances } = generateDemoData()
-                
+
                 // Add demo employees if they don't exist
                 if (!hasDemoEmployees) {
                     employees = [...employees, ...demoEmployees]
                 }
-                
+
                 // Add demo attendances if they don't exist
                 if (!hasDemoAttendances) {
                     attendances = [...attendances, ...demoAttendances]
@@ -326,6 +368,8 @@ export const useDataStore = create<DataState>()(
             return {
                 employees,
                 attendances,
+                shifts,
+                scheduledEmployees,
                 kioskAccounts: [],
                 invitations: [],
                 addEmployee: (employee) => {
@@ -386,6 +430,14 @@ export const useDataStore = create<DataState>()(
 
                     return true
                 },
+
+                setShifts: (shifts) => {
+                    set({ shifts })
+                },
+
+                setScheduledEmployees: (scheduledEmployees) => {
+                    set({ scheduledEmployees })
+                },
             }
         },
         {
@@ -398,12 +450,12 @@ export const useDataStore = create<DataState>()(
 
                     if (!hasDemoEmployees || !hasDemoAttendances) {
                         const { demoEmployees, demoAttendances } = generateDemoData()
-                        
+
                         // Add demo data if missing
-                        const updatedEmployees = hasDemoEmployees 
-                            ? state.employees 
+                        const updatedEmployees = hasDemoEmployees
+                            ? state.employees
                             : [...state.employees, ...demoEmployees]
-                        
+
                         const updatedAttendances = hasDemoAttendances
                             ? state.attendances
                             : [...state.attendances, ...demoAttendances]

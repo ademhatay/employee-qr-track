@@ -1,279 +1,229 @@
-import { useState, useEffect } from 'react'
-import { Link, useNavigate } from '@tanstack/react-router'
-import { LogOut } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
+import { useState } from 'react'
+import { Link, useNavigate, useLocation } from '@tanstack/react-router'
 import { useAuthStore } from '@/lib/store'
-import { Icons } from '@/lib/icons'
-import { toggleTheme, isDarkTheme } from '@/lib/design-system'
 
-export function DashboardLayout({ children }: { children: React.ReactNode }) {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-    const [darkMode, setDarkMode] = useState(false)
+interface DashboardLayoutProps {
+    children: React.ReactNode
+}
+
+export function DashboardLayout({ children }: DashboardLayoutProps) {
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const navigate = useNavigate()
+    const location = useLocation()
     const user = useAuthStore((state) => state.user)
-    const company = useAuthStore((state) => state.company)
     const logout = useAuthStore((state) => state.logout)
-
-    // Initialize theme from localStorage on mount
-    useEffect(() => {
-        setDarkMode(isDarkTheme())
-    }, [])
-
-    // Listen for storage changes to sync theme across tabs
-    useEffect(() => {
-        const handleStorageChange = (e: StorageEvent) => {
-            if (e.key === 'employee-qr-theme') {
-                const newTheme = e.newValue === 'dark'
-                setDarkMode(newTheme)
-            }
-        }
-
-        window.addEventListener('storage', handleStorageChange)
-        return () => window.removeEventListener('storage', handleStorageChange)
-    }, [])
-
-    const handleThemeToggle = () => {
-        toggleTheme()
-        setDarkMode(!darkMode)
-    }
-
-    const initials = user?.name
-        ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
-        : 'U'
-
-    const sidebarItems = [
-        { href: '/dashboard', title: 'Genel Bakış', icon: Icons.home, color: 'blue' },
-        { href: '/dashboard/employees', title: 'Çalışanlar', icon: Icons.users, color: 'green' },
-        { href: '/dashboard/reports', title: 'Raporlar', icon: Icons.trending, color: 'purple' },
-        { href: '/dashboard/settings', title: 'Ayarlar', icon: Icons.settings, color: 'red' },
-    ]
 
     const handleLogout = () => {
         logout()
         navigate({ to: '/' })
     }
 
-    const SidebarContent = () => (
-        <div className="flex flex-col h-full relative">
-            {/* Background texture */}
-            <div className="absolute inset-0 bg-texture-adaptive-paper opacity-60 pointer-events-none" />
-            
-            {/* Logo Section */}
-            <div className="relative z-10 border-b border-sketchy-border-muted border-dashed">
-                <Link
-                    to="/"
-                    className="flex items-center gap-3 group p-4 hover:bg-sketchy-accent-blue/5 active:bg-sketchy-accent-blue/10 transition-colors"
-                    onClick={() => setIsSidebarOpen(false)}
-                >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sketchy-accent-blue border-organic-md shadow-sketchy-sm group-hover:scale-105 group-active:scale-95 transition-transform">
-                        <Icons.qrCode className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="space-y-0">
-                        <h1 className="heading-organic-4 text-sketchy-primary font-bold text-sm group-hover:text-sketchy-accent-blue transition-colors">
-                            EMPLOYEE QR SYSTEM
-                        </h1>
-                    </div>
-                </Link>
-            </div>
+    const navItems = [
+        { href: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
+        { href: '/schedule', label: 'Schedule', icon: 'calendar_month' },
+        { href: '/dashboard/employees', label: 'Users', icon: 'group' },
+        { href: '/dashboard/reports', label: 'Charts', icon: 'bar_chart' },
+        { href: '/kiosk', label: 'QR Codes', icon: 'qr_code_2' },
+    ]
 
-            {/* Navigation */}
-            <nav className="relative z-10 flex-1 px-4 py-4 space-y-2 overflow-y-auto">
-                {sidebarItems.map((item) => (
-                    <Link
-                        key={item.href}
-                        to={item.href}
-                        className="group flex items-center gap-3 px-4 py-3 rounded-xl border-organic-sm transition-all duration-300 hover:shadow-sketchy-md hover:border-sketchy-accent-blue/30 [&.active]:bg-sketchy-accent-blue/10 [&.active]:border-sketchy-accent-blue/50"
-                        activeOptions={{ exact: true }}
-                        onClick={() => setIsSidebarOpen(false)}
-                    >
-                        <div className={`flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 ${
-                            item.color === 'blue' ? 'bg-sketchy-accent-blue/10 text-sketchy-accent-blue' :
-                            item.color === 'green' ? 'bg-sketchy-accent-green/10 text-sketchy-accent-green' :
-                            item.color === 'purple' ? 'bg-sketchy-accent-purple/10 text-sketchy-accent-purple' :
-                            'bg-sketchy-accent-red/10 text-sketchy-accent-red'
-                        }`}>
-                            <item.icon className="w-5 h-5" />
-                        </div>
-                        <span className="body-organic text-sketchy-primary font-medium group-hover:translate-x-1 transition-transform">
-                            {item.title}
-                        </span>
-                    </Link>
-                ))}
-            </nav>
 
-            {/* Company Info */}
-            <div className="relative z-10 p-4 border-t border-sketchy-border-muted border-dashed">
-                <Card sketchy texture="paper" className="shadow-sketchy-sm">
-                    <div className="p-4 space-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sketchy-accent-blue/10">
-                                <Icons.building className="w-4 h-4 text-sketchy-accent-blue" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="label-organic text-sketchy-primary font-medium truncate">
-                                    {company?.name}
-                                </p>
-                            </div>
-                        </div>
-                        <Badge 
-                            variant="secondary" 
-                            className="border-organic-sm text-xs w-full justify-center"
-                        >
-                            {company?.plan === 'pro' ? 'Pro Plan' : 'Ücretsiz Plan'}
-                        </Badge>
-                    </div>
-                </Card>
-            </div>
-        </div>
-    )
+    const isPathActive = (href: string) => {
+        if (href === '/dashboard') {
+            return location.pathname === '/dashboard' || location.pathname === '/dashboard/'
+        }
+        return location.pathname.startsWith(href)
+    }
 
     return (
-        <div className="min-h-screen bg-sketchy-bg-primary relative overflow-hidden">
-            {/* Background texture overlay */}
-            <div className="absolute inset-0 bg-texture-adaptive-paper opacity-40 pointer-events-none" />
-            
-            <div className="relative z-10 flex min-h-screen">
-                {/* Desktop Sidebar - Fixed Position */}
-                <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-[280px] flex-col border-r border-sketchy-border-muted border-dashed bg-sketchy-bg-secondary/50 overflow-y-auto z-40">
-                    <SidebarContent />
+        <div className="dashboard-body bg-background-light text-charcoal font-dashboard-display overflow-hidden">
+            {/* Decorative Doodles */}
+            <div className="fixed top-20 right-10 opacity-20 pointer-events-none z-0 rotate-12 hidden xl:block">
+                <svg fill="none" height="100" stroke="currentColor" strokeWidth="2" viewBox="0 0 100 100" width="100">
+                    <path d="M20,20 C40,10 60,30 80,20 S 90,50 80,80" strokeDasharray="5,5"></path>
+                </svg>
+            </div>
+            <div className="fixed bottom-10 left-64 opacity-20 pointer-events-none z-0 -rotate-12 hidden lg:block">
+                <span className="material-symbols-outlined text-6xl">local_cafe</span>
+            </div>
+
+            <div className="flex h-screen w-full">
+                {/* Left Sidebar */}
+                <aside className="hidden lg:flex w-64 min-w-[256px] h-full flex-col bg-background-light border-r-2 border-charcoal/10 relative z-20 wiggly-border-r shadow-sm">
+                    <div className="p-6 pb-2">
+                        <Link to="/" className="flex items-center gap-2 mb-2">
+                            <span className="material-symbols-outlined text-dashboard-primary text-3xl font-bold">
+                                qr_code_scanner
+                            </span>
+                            <h1 className="font-hand text-2xl font-bold text-charcoal tracking-wide">QR Track</h1>
+                        </Link>
+                        <p className="text-charcoal/60 text-xs font-hand pl-10 -mt-2">Admin Console</p>
+                    </div>
+
+                    <nav className="flex-1 flex flex-col gap-3 px-4 py-6 overflow-y-auto">
+                        {navItems.map((item) => {
+                            const active = isPathActive(item.href)
+                            return (
+                                <Link
+                                    key={item.href}
+                                    to={item.href}
+                                    className={`group relative flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${active ? '' : 'hover:bg-black/5'
+                                        }`}
+                                >
+                                    {active && (
+                                        <div className="absolute inset-0 bg-dashboard-primary/10 rounded-lg wiggly-border-sm border-transparent transform -rotate-1 opacity-100"></div>
+                                    )}
+                                    <span
+                                        className={`material-symbols-outlined ${active ? 'text-dashboard-primary' : 'text-charcoal/70 group-hover:text-charcoal'}`}
+                                    >
+                                        {item.icon}
+                                    </span>
+                                    <span
+                                        className={`${active ? 'font-bold text-charcoal relative z-10' : 'font-medium text-charcoal/70 group-hover:text-charcoal'}`}
+                                    >
+                                        {item.label}
+                                    </span>
+                                    {active && (
+                                        <div className="ml-auto opacity-100 text-dashboard-primary">
+                                            <span className="material-symbols-outlined text-sm">edit</span>
+                                        </div>
+                                    )}
+                                </Link>
+                            )
+                        })}
+
+                        <div className="my-2 border-t-2 border-charcoal/10 border-dashed mx-3"></div>
+
+                        <Link
+                            to="/dashboard/settings"
+                            className={`group relative flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${isPathActive('/dashboard/settings') ? '' : 'hover:bg-black/5'}`}
+                        >
+                            {isPathActive('/dashboard/settings') && (
+                                <div className="absolute inset-0 bg-dashboard-primary/10 rounded-lg wiggly-border-sm border-transparent transform -rotate-1 opacity-100"></div>
+                            )}
+                            <span className={`material-symbols-outlined ${isPathActive('/dashboard/settings') ? 'text-dashboard-primary' : 'text-charcoal/70 group-hover:text-charcoal'}`}>settings</span>
+                            <span className={`${isPathActive('/dashboard/settings') ? 'font-bold text-charcoal relative z-10' : 'font-medium text-charcoal/70 group-hover:text-charcoal'}`}>Settings</span>
+                        </Link>
+
+                        <button
+                            onClick={handleLogout}
+                            className="group flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-black/5 transition-all mt-auto"
+                        >
+                            <span className="material-symbols-outlined text-charcoal/70 group-hover:text-charcoal">logout</span>
+                            <span className="font-medium text-charcoal/70 group-hover:text-charcoal">Logout</span>
+                        </button>
+                    </nav>
+
+                    {/* Paper Clip Decoration */}
+                    <div className="absolute -right-3 top-20 transform rotate-45 text-charcoal/30 z-30">
+                        <span className="material-symbols-outlined text-4xl">attachment</span>
+                    </div>
                 </aside>
 
                 {/* Mobile Sidebar */}
-                <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-                    <SheetContent side="left" className="w-[300px] p-0 border-r border-sketchy-border-muted border-dashed bg-sketchy-bg-secondary">
-                        <SidebarContent />
-                    </SheetContent>
-                </Sheet>
-
-                {/* Main Content - Full width and scrollable */}
-                <div className="flex flex-col flex-1 min-h-screen w-full lg:pl-[280px]">
-                    {/* Header */}
-                    <header className="fixed top-0 left-0 right-0 lg:left-[280px] z-50 border-b border-sketchy-border-muted border-dashed bg-sketchy-bg-primary/95 backdrop-blur-sm">
-                        <div className="flex h-16 lg:h-20 items-center gap-4 px-4 lg:px-6">
-                            {/* Mobile Menu Button */}
-                            <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-                                <SheetTrigger asChild>
-                                    <Button
-                                        variant="sketchy"
-                                        size="icon"
-                                        className="shrink-0 lg:hidden h-10 w-10"
-                                    >
-                                        <Icons.menu className="h-5 w-5" />
-                                        <span className="sr-only">Toggle navigation menu</span>
-                                    </Button>
-                                </SheetTrigger>
-                            </Sheet>
-
-                            {/* Page Title Area */}
-                            <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                    <Badge
-                                        variant="secondary"
-                                        className="border-organic-sm text-xs hidden sm:inline-flex"
-                                    >
-                                        <Icons.qrCode className="w-3 h-3 mr-1" />
-                                        {company?.name}
-                                    </Badge>
+                {isMobileMenuOpen && (
+                    <div className="lg:hidden fixed inset-0 z-50">
+                        <div className="absolute inset-0 bg-black/50" onClick={() => setIsMobileMenuOpen(false)}></div>
+                        <aside className="absolute left-0 top-0 bottom-0 w-64 bg-background-light shadow-lg">
+                            <div className="p-6 pb-2">
+                                <div className="flex items-center justify-between">
+                                    <Link to="/" className="flex items-center gap-2 mb-2">
+                                        <span className="material-symbols-outlined text-dashboard-primary text-3xl font-bold">
+                                            qr_code_scanner
+                                        </span>
+                                        <h1 className="font-hand text-2xl font-bold text-charcoal tracking-wide">QR Track</h1>
+                                    </Link>
+                                    <button onClick={() => setIsMobileMenuOpen(false)}>
+                                        <span className="material-symbols-outlined">close</span>
+                                    </button>
                                 </div>
                             </div>
+                            <nav className="flex-1 flex flex-col gap-3 px-4 py-6">
+                                {navItems.map((item) => {
+                                    const active = isPathActive(item.href)
+                                    return (
+                                        <Link
+                                            key={item.href}
+                                            to={item.href}
+                                            onClick={() => setIsMobileMenuOpen(false)}
+                                            className={`group relative flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${active ? '' : 'hover:bg-black/5'}`}
+                                        >
+                                            {active && (
+                                                <div className="absolute inset-0 bg-dashboard-primary/10 rounded-lg wiggly-border-sm border-transparent transform -rotate-1 opacity-100"></div>
+                                            )}
+                                            <span className={`material-symbols-outlined ${active ? 'text-dashboard-primary' : 'text-charcoal/70'}`}>{item.icon}</span>
+                                            <span className={`${active ? 'font-bold text-charcoal relative z-10' : 'font-medium text-charcoal/70'}`}>{item.label}</span>
+                                        </Link>
+                                    )
+                                })}
+                            </nav>
+                        </aside>
+                    </div>
+                )}
 
-                            {/* Theme Toggle */}
-                            <div className="flex items-center gap-2 bg-sketchy-bg-secondary/50 px-3 py-1.5 rounded-2xl border border-sketchy-border-muted border-dashed">
-                                <Label className="label-organic cursor-pointer" htmlFor="theme-toggle">Light</Label>
-                                <Switch
-                                    id="theme-toggle"
-                                    checked={darkMode}
-                                    onCheckedChange={handleThemeToggle}
+                {/* Main Content */}
+                <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-[size:20px_20px] bg-paper-pattern">
+                    {/* Header */}
+                    <header className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 pb-2 gap-4">
+                        <div className="flex items-center gap-4 w-full md:w-auto">
+                            {/* Mobile Menu Button */}
+                            <button className="lg:hidden p-2 text-charcoal" onClick={() => setIsMobileMenuOpen(true)}>
+                                <span className="material-symbols-outlined">menu</span>
+                            </button>
+
+                            <div className="flex flex-col">
+                                <h2 className="font-hand text-3xl md:text-4xl font-bold text-charcoal relative inline-block">
+                                    Hello, {user?.name?.split(' ')[0] || 'Admin'}! ✨
+                                    <span className="absolute -bottom-1 left-0 w-full h-2 bg-yellow-200/50 -z-10 rounded-full transform -rotate-1"></span>
+                                </h2>
+                                <p className="text-charcoal/60 font-dashboard-display text-sm mt-1">
+                                    Here's your daily doodle overview.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 w-full md:w-auto">
+                            {/* Sketchy Search */}
+                            <div className="relative group w-full md:w-64">
+                                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                                    <span className="material-symbols-outlined text-charcoal/50">search</span>
+                                </div>
+                                <input
+                                    className="w-full py-2.5 pl-10 pr-4 bg-white text-charcoal placeholder-charcoal/40 focus:outline-none focus:ring-2 focus:ring-dashboard-primary/20 wiggly-border-sm transition-shadow shadow-sm"
+                                    placeholder="Search logs..."
+                                    type="text"
                                 />
-                                <Label className="label-organic cursor-pointer" htmlFor="theme-toggle">Dark</Label>
                             </div>
 
-                            {/* User Menu */}
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button 
-                                        variant="sketchy" 
-                                        size="icon" 
-                                        className="h-10 w-10 rounded-2xl border-organic-md shadow-sketchy-sm hover:shadow-sketchy-md transition-shadow"
-                                    >
-                                        <Avatar className="h-9 w-9 border-2 border-sketchy-border-muted">
-                                            <AvatarImage src="" alt={user?.name} />
-                                            <AvatarFallback className="bg-sketchy-accent-blue text-white body-organic font-semibold">
-                                                {initials}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <span className="sr-only">Toggle user menu</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent 
-                                    align="end" 
-                                    className="w-56 border-organic-md shadow-sketchy-lg"
-                                >
-                                    <DropdownMenuLabel className="border-b border-sketchy-border-muted border-dashed pb-3">
-                                        <div className="space-y-1">
-                                            <p className="label-organic text-sketchy-primary font-semibold">
-                                                {user?.name}
-                                            </p>
-                                            <p className="body-organic-small text-sketchy-text-secondary">
-                                                {user?.email}
-                                            </p>
-                                        </div>
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem asChild>
-                                        <Link 
-                                            to="/dashboard/settings"
-                                            className="flex items-center gap-2 cursor-pointer"
-                                        >
-                                            <Icons.settings className="w-4 h-4" />
-                                            Ayarlar
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link 
-                                            to="/app"
-                                            className="flex items-center gap-2 cursor-pointer"
-                                        >
-                                            <Icons.qrCode className="w-4 h-4" />
-                                            Çalışan Modu
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem 
-                                        onClick={handleLogout}
-                                        className="text-sketchy-accent-red hover:bg-sketchy-accent-red/10 cursor-pointer"
-                                    >
-                                        <LogOut className="w-4 h-4 mr-2" />
-                                        Çıkış Yap
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                            {/* Avatar */}
+                            <div className="relative shrink-0 cursor-pointer group">
+                                <div className="w-12 h-12 rounded-full border-2 border-charcoal p-0.5 transform transition-transform group-hover:rotate-6 shadow-sm overflow-hidden bg-white">
+                                    <div
+                                        className="w-full h-full rounded-full bg-cover bg-center bg-dashboard-primary/10 flex items-center justify-center"
+                                        style={{
+                                            backgroundImage:
+                                                "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBIymUNrLGIHOFi6RPsw9ApEKZSgGD1v87MCqw12cAEp9wDsS8rkmvGGyR-s70Sw13w-cRXy0AdXwXYVp4jho4--aQ1UEL_-wS46fl-C_tq0_OarYZyxt33e8mSZX58QGcInluZQlyNQR_YO_pVMQ6Let5ZQfr1PeC224WCXqZKMRkrVYflF28bz62j8znniSRKkM0Ei8hAPpA8lMNAyc5xzeUIYkT_vwE7FRjwdtzMILLyn2tZafK6mMfxSEVoosqzxOXZsjutsQ')",
+                                        }}
+                                    ></div>
+                                </div>
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                            </div>
                         </div>
                     </header>
 
-                    {/* Main Content Area */}
-                    <main className="flex-1 relative pt-16 lg:pt-20">
-                        <div className="absolute inset-0 bg-texture-adaptive-paper opacity-30 pointer-events-none" />
-                        <div className="relative z-10 p-4 lg:p-6 space-y-6">
-                            {children}
-                        </div>
-                    </main>
-                </div>
+                    {/* Scrollable Content */}
+                    <div className="flex-1 overflow-y-auto p-6 pt-2">{children}</div>
+                </main>
             </div>
-        </div>
+
+            {/* SVG Filters for wiggle effect */}
+            <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+                <defs>
+                    <filter id="wiggleFilter">
+                        <feTurbulence baseFrequency="0.01" numOctaves={3} result="noise" type="fractalNoise"></feTurbulence>
+                        <feDisplacementMap in="SourceGraphic" in2="noise" scale={2}></feDisplacementMap>
+                    </filter>
+                </defs>
+            </svg>
+        </div >
     )
 }

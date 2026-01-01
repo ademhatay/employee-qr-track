@@ -1,159 +1,96 @@
-import { useState, useEffect } from 'react'
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card'
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
+import { useState } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
 import { useDataStore, useAuthStore } from '@/lib/store'
-import { format, startOfMonth, endOfMonth, differenceInMinutes, isWithinInterval, subMonths } from 'date-fns'
+import { format, differenceInMinutes, isWithinInterval, subMonths } from 'date-fns'
 import { tr } from 'date-fns/locale'
-import { Icons } from '@/lib/icons'
 import { toast } from 'sonner'
 
 export function ReportsPage() {
-    // Initialize with last month's date range
-    const lastMonth = subMonths(new Date(), 1)
     const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
-        from: startOfMonth(lastMonth),
-        to: endOfMonth(lastMonth),
+        from: subMonths(new Date(), 1),
+        to: new Date(),
     })
+
+    const [isSeeding, setIsSeeding] = useState(false)
 
     const company = useAuthStore((state) => state.company)
     const employees = useDataStore((state) => state.employees)
     const attendances = useDataStore((state) => state.attendances)
-    const addEmployee = useDataStore((state) => state.addEmployee)
     const addAttendance = useDataStore((state) => state.addAttendance)
-
-    // Ensure demo data exists for demo company
-    useEffect(() => {
-        if (company?.id === 'demo-company') {
-            const demoCompanyId = 'demo-company'
-            const hasDemoEmployees = employees.some((e) => e.companyId === demoCompanyId)
-            const hasDemoAttendances = attendances.some((a) => a.companyId === demoCompanyId)
-
-            if (!hasDemoEmployees || !hasDemoAttendances) {
-                // Generate demo data
-                const lastMonthDate = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1)
-                const demoMonth = lastMonthDate.getMonth()
-                const demoYear = lastMonthDate.getFullYear()
-                const daysInMonth = new Date(demoYear, demoMonth + 1, 0).getDate()
-                const workDays: Array<number> = []
-                
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const date = new Date(demoYear, demoMonth, day)
-                    const dayOfWeek = date.getDay()
-                    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-                        workDays.push(day)
-                    }
-                }
-
-                const demoEmployees = [
-                    { id: 'emp-001', name: 'Ahmet Yılmaz', email: 'ahmet@demo.com', role: 'employee' as const, position: 'Yazılım Geliştirici', companyId: demoCompanyId, isActive: true, createdAt: new Date('2024-01-15').toISOString() },
-                    { id: 'emp-002', name: 'Ayşe Demir', email: 'ayse@demo.com', role: 'employee' as const, position: 'Tasarım Direktörü', companyId: demoCompanyId, isActive: true, createdAt: new Date('2024-02-20').toISOString() },
-                    { id: 'emp-003', name: 'Mehmet Kaya', email: 'mehmet@demo.com', role: 'manager' as const, position: 'Proje Yöneticisi', companyId: demoCompanyId, isActive: true, createdAt: new Date('2024-03-10').toISOString() },
-                    { id: 'emp-004', name: 'Zeynep Arslan', email: 'zeynep@demo.com', role: 'employee' as const, position: 'İnsan Kaynakları', companyId: demoCompanyId, isActive: true, createdAt: new Date('2024-04-05').toISOString() },
-                    { id: 'emp-005', name: 'Can Öztürk', email: 'can@demo.com', role: 'employee' as const, position: 'Satış Temsilcisi', companyId: demoCompanyId, isActive: true, createdAt: new Date('2024-05-18').toISOString() },
-                ]
-
-                if (!hasDemoEmployees) {
-                    demoEmployees.forEach((emp) => addEmployee(emp))
-                }
-
-                if (!hasDemoAttendances) {
-                    demoEmployees.forEach((employee) => {
-                        const workPercentage = 0.7 + Math.random() * 0.1
-                        const daysWorked = Math.floor(workDays.length * workPercentage)
-                        const shuffledDays = [...workDays].sort(() => Math.random() - 0.5)
-                        const employeeWorkDays = shuffledDays.slice(0, daysWorked)
-
-                        employeeWorkDays.forEach((day) => {
-                            const checkInHour = 8 + Math.floor(Math.random() * 2)
-                            const checkOutHour = 17 + Math.floor(Math.random() * 2)
-                            const checkInMinute = Math.floor(Math.random() * 60)
-                            const checkOutMinute = Math.floor(Math.random() * 60)
-
-                            const checkInDate = new Date(demoYear, demoMonth, day, checkInHour, checkInMinute)
-                            const checkOutDate = new Date(demoYear, demoMonth, day, checkOutHour, checkOutMinute)
-
-                            addAttendance({
-                                id: crypto.randomUUID(),
-                                employeeId: employee.id,
-                                companyId: demoCompanyId,
-                                type: 'check-in',
-                                timestamp: checkInDate.toISOString(),
-                                device: 'kiosk',
-                            })
-                            addAttendance({
-                                id: crypto.randomUUID(),
-                                employeeId: employee.id,
-                                companyId: demoCompanyId,
-                                type: 'check-out',
-                                timestamp: checkOutDate.toISOString(),
-                                device: 'kiosk',
-                            })
-                        })
-                    })
-                }
-            }
-        }
-    }, [company?.id, employees, attendances, addEmployee, addAttendance])
-
-    const downloadExcel = () => {
-        try {
-            // Create CSV content with BOM for Excel compatibility
-            const BOM = '\uFEFF'
-            let csvContent = 'Çalışan Adı,Pozisyon,Toplam Gün,Çalışma Saati,İşlem Sayısı\n'
-
-            employeeReports.forEach((report) => {
-                csvContent += `"${report.employee.name}",`
-                csvContent += `"${report.employee.position || ''}",`
-                csvContent += `${report.daysWorked},`
-                csvContent += `"${report.hours}s ${report.minutes}dk",`
-                csvContent += `${report.totalAttendances}\n`
-            })
-
-            // Add summary row
-            csvContent += '\n'
-            csvContent += `,,,,\n`
-            csvContent += `"ÖZET",,,,\n`
-            csvContent += `"Toplam Çalışma:",,,"${totalHours.toFixed(1)} saat",\n`
-            csvContent += `"Toplam Çalışan:",,,"${companyEmployees.length}",\n`
-            csvContent += `"Toplam İşlem:",,,"${employeeReports.reduce((sum, r) => sum + r.totalAttendances, 0)}",\n`
-
-            // Create and download file
-            const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' })
-            const url = URL.createObjectURL(blob)
-            const link = document.createElement('a')
-            link.href = url
-            link.download = `Rapor_${format(dateRange.from, 'dd_MM_yyyy')}_${format(dateRange.to, 'dd_MM_yyyy')}.csv`
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
-            URL.revokeObjectURL(url)
-
-            toast.success('Excel dosyası başarıyla indirildi!')
-        } catch (error) {
-            console.error('Export error:', error)
-            toast.error('Dosya indirilirken hata oluştu')
-        }
-    }
+    const addEmployee = useDataStore((state) => state.addEmployee)
 
     const companyEmployees = employees.filter((e) => e.companyId === company?.id)
 
-    // Calculate hours for each employee in date range
+    const seedData = () => {
+        if (!company) return
+
+        setIsSeeding(true)
+        const now = new Date()
+        let seededCount = 0
+
+        // 1. Önce çalışanları kontrol et, yoksa oluştur
+        let targetEmployees = companyEmployees
+        if (targetEmployees.length === 0) {
+            const demoNames = ['Sarah Jenkins', 'Mike Ross', 'Harvey Specter', 'Donna Paulsen', 'Rachel Zane']
+            demoNames.forEach((name, idx) => {
+                const newEmp = {
+                    id: `seed-emp-${idx}-${Date.now()}`,
+                    name,
+                    email: `${name.toLowerCase().replace(' ', '.')}@example.com`,
+                    role: 'employee' as const,
+                    position: 'Consultant',
+                    companyId: company.id,
+                    isActive: true,
+                    createdAt: new Date().toISOString()
+                }
+                addEmployee(newEmp)
+            })
+            // Eklenen çalışanları hemen al
+            targetEmployees = useDataStore.getState().employees.filter(e => e.companyId === company.id)
+        }
+
+        // 2. Son 30 günlük veri üret
+        for (let i = 30; i >= 0; i--) {
+            const currentDate = new Date(now)
+            currentDate.setDate(now.getDate() - i)
+            const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6
+
+            targetEmployees.forEach((employee) => {
+                if (isWeekend && Math.random() > 0.1) return
+                if (!isWeekend && Math.random() > 0.9) return
+
+                const cin = new Date(currentDate)
+                cin.setHours(8 + Math.floor(Math.random() * 2), Math.floor(Math.random() * 60))
+
+                const cout = new Date(currentDate)
+                cout.setHours(17 + Math.floor(Math.random() * 2), Math.floor(Math.random() * 60))
+
+                addAttendance({
+                    id: crypto.randomUUID(),
+                    employeeId: employee.id,
+                    companyId: company.id,
+                    type: 'check-in',
+                    timestamp: cin.toISOString(),
+                    device: 'kiosk',
+                })
+
+                addAttendance({
+                    id: crypto.randomUUID(),
+                    employeeId: employee.id,
+                    companyId: company.id,
+                    type: 'check-out',
+                    timestamp: cout.toISOString(),
+                    device: 'kiosk',
+                })
+                seededCount += 2
+            })
+        }
+
+        setIsSeeding(false)
+        toast.success(`${targetEmployees.length} çalışan için ${seededCount} kayıt oluşturuldu!`)
+    }
+
     const employeeReports = companyEmployees.map((employee) => {
         const empAttendances = attendances
             .filter(
@@ -173,19 +110,13 @@ export function ReportsPage() {
             }
         }
 
-        const hours = Math.floor(totalMinutes / 60)
-        const minutes = totalMinutes % 60
-        const daysWorked = new Set(
-            empAttendances.map((a) => new Date(a.timestamp).toDateString())
-        ).size
-
         return {
             employee,
-            totalMinutes,
-            hours,
-            minutes,
-            daysWorked,
+            hours: Math.floor(totalMinutes / 60),
+            minutes: totalMinutes % 60,
+            daysWorked: new Set(empAttendances.map((a) => new Date(a.timestamp).toDateString())).size,
             totalAttendances: empAttendances.length,
+            totalMinutes
         }
     })
 
@@ -193,138 +124,90 @@ export function ReportsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-white wiggly-border sketch-shadow">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Raporlar</h1>
-                    <p className="text-muted-foreground">
-                        Çalışan devam ve performans raporları
-                    </p>
+                    <h1 className="font-hand text-3xl font-bold text-charcoal">Reports & Analytics 📊</h1>
+                    <p className="text-charcoal/60 text-sm">Attendance data for your company</p>
                 </div>
-                <Button variant="outline" onClick={downloadExcel}>
-                    <Icons.download className="mr-2 h-4 w-4" />
-                    Excel İndir
-                </Button>
+                <div className="flex items-center gap-3">
+                    {companyEmployees.length === 0 && (
+                        <button
+                            onClick={seedData}
+                            disabled={isSeeding}
+                            className="font-hand font-bold bg-yellow-400 text-charcoal px-4 py-2 wiggly-border-sm sketch-shadow hover:-translate-y-1 transition-all flex items-center gap-2 disabled:opacity-50"
+                        >
+                            <span className="material-symbols-outlined">{isSeeding ? 'sync' : 'database'}</span>
+                            {isSeeding ? 'Generating...' : 'Seed Data'}
+                        </button>
+                    )}
+                </div>
             </div>
 
-            {/* Date Range Picker */}
-            <Card>
-                <CardContent className="p-4">
-                    <div className="flex flex-wrap items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">Tarih Aralığı:</span>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant="outline" className="justify-start text-left font-normal">
-                                        <Icons.calendar className="mr-2 h-4 w-4" />
-                                        {format(dateRange.from, 'dd MMM', { locale: tr })} -{' '}
-                                        {format(dateRange.to, 'dd MMM yyyy', { locale: tr })}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar
-                                        mode="range"
-                                        selected={{ from: dateRange.from, to: dateRange.to }}
-                                        onSelect={(range) => {
-                                            if (range?.from && range?.to) {
-                                                setDateRange({ from: range.from, to: range.to })
-                                            }
-                                        }}
-                                        numberOfMonths={2}
-                                    />
-                                </PopoverContent>
-                            </Popover>
-                        </div>
+            {/* Date Range & Stats Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div className="lg:col-span-1 bg-white p-4 rounded-lg wiggly-border sketch-shadow">
+                    <p className="font-hand font-bold text-charcoal mb-2">Select Range</p>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <button className="w-full font-dashboard-display text-sm bg-background-light px-4 py-2 wiggly-border-sm flex items-center justify-between">
+                                <span>{format(dateRange.from, 'dd MMM')} - {format(dateRange.to, 'dd MMM')}</span>
+                                <span className="material-symbols-outlined text-sm">calendar_month</span>
+                            </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 bg-white wiggly-border">
+                            <Calendar mode="range" selected={{ from: dateRange.from, to: dateRange.to }} onSelect={(r) => r?.from && r?.to && setDateRange({ from: r.from, to: r.to })} />
+                        </PopoverContent>
+                    </Popover>
+                </div>
+
+                <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-white p-4 rounded-lg wiggly-border sketch-shadow">
+                        <p className="text-charcoal/60 text-xs uppercase font-bold">Total Hours</p>
+                        <p className="text-2xl font-bold font-dashboard-display">{totalHours.toFixed(1)}h</p>
                     </div>
-                </CardContent>
-            </Card>
-
-            {/* Summary Cards */}
-            <div className="grid gap-4 md:grid-cols-3">
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Toplam Çalışma</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{totalHours.toFixed(1)} saat</div>
-                        <p className="text-xs text-muted-foreground">
-                            {companyEmployees.length} çalışan
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Ortalama/Çalışan</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {companyEmployees.length > 0
-                                ? (totalHours / companyEmployees.length).toFixed(1)
-                                : 0}{' '}
-                            saat
-                        </div>
-                        <p className="text-xs text-muted-foreground">Dönem ortalaması</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Toplam Giriş-Çıkış</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
+                    <div className="bg-white p-4 rounded-lg wiggly-border sketch-shadow">
+                        <p className="text-charcoal/60 text-xs uppercase font-bold">Active Employees</p>
+                        <p className="text-2xl font-bold font-dashboard-display">{companyEmployees.length}</p>
+                    </div>
+                    <div className="bg-white p-4 rounded-lg wiggly-border sketch-shadow">
+                        <p className="text-charcoal/60 text-xs uppercase font-bold">Total Scans</p>
+                        <p className="text-2xl font-bold font-dashboard-display">
                             {employeeReports.reduce((sum, r) => sum + r.totalAttendances, 0)}
-                        </div>
-                        <p className="text-xs text-muted-foreground">İşlem sayısı</p>
-                    </CardContent>
-                </Card>
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            {/* Employee Table */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Çalışan Detayları</CardTitle>
-                    <CardDescription>
-                        {format(dateRange.from, 'dd MMMM', { locale: tr })} -{' '}
-                        {format(dateRange.to, 'dd MMMM yyyy', { locale: tr })} arası
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Çalışan</TableHead>
-                                <TableHead>Pozisyon</TableHead>
-                                <TableHead className="text-right">Gün Sayısı</TableHead>
-                                <TableHead className="text-right">Toplam Süre</TableHead>
-                                <TableHead className="text-right">İşlem</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {employeeReports.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                                        Henüz çalışan verisi yok
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                employeeReports.map((report) => (
-                                    <TableRow key={report.employee.id}>
-                                        <TableCell className="font-medium">{report.employee.name}</TableCell>
-                                        <TableCell>{report.employee.position || '-'}</TableCell>
-                                        <TableCell className="text-right">{report.daysWorked}</TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex items-center justify-end gap-1">
-                                                <Icons.clock className="h-3 w-3 text-muted-foreground" />
-                                                {report.hours}s {report.minutes}dk
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-right">{report.totalAttendances}</TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+            {/* Table */}
+            <div className="bg-white rounded-lg wiggly-border sketch-shadow overflow-hidden">
+                <table className="w-full text-left">
+                    <thead className="bg-background-light border-b-2 border-charcoal">
+                        <tr className="font-hand text-lg">
+                            <th className="px-6 py-3">Employee</th>
+                            <th className="px-6 py-3 text-center">Days</th>
+                            <th className="px-6 py-3 text-center">Total Hours</th>
+                            <th className="px-6 py-3 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y-2 divide-dashed divide-charcoal/10">
+                        {employeeReports.length === 0 ? (
+                            <tr><td colSpan={4} className="px-6 py-10 text-center font-hand text-xl text-charcoal/40">No data available. Click "Seed Data" above!</td></tr>
+                        ) : (
+                            employeeReports.map((report) => (
+                                <tr key={report.employee.id} className="hover:bg-yellow-50/50">
+                                    <td className="px-6 py-4 font-bold">{report.employee.name}</td>
+                                    <td className="px-6 py-4 text-center">{report.daysWorked}</td>
+                                    <td className="px-6 py-4 text-center">{report.hours}h {report.minutes}m</td>
+                                    <td className="px-6 py-4 text-right">
+                                        <button className="text-dashboard-primary material-symbols-outlined">visibility</button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
     )
 }

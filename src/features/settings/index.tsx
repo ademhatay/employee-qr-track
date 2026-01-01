@@ -3,13 +3,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card'
-import {
     Dialog,
     DialogContent,
     DialogDescription,
@@ -26,12 +19,8 @@ import {
     FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useDataStore, useAuthStore, type KioskAccount } from '@/lib/store'
 import { toast } from 'sonner'
-import { Icons } from '@/lib/icons'
 
 const kioskSchema = z.object({
     name: z.string().min(2, 'Kiosk adı en az 2 karakter olmalı'),
@@ -85,100 +74,171 @@ export function SettingsPage() {
     }
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Ayarlar</h1>
-                <p className="text-muted-foreground">
-                    Şirket ve kiosk ayarlarını yönetin
+        <div className="space-y-8">
+            {/* Page Header with Hand-drawn Style */}
+            <div className="relative">
+                <h1 className="font-hand text-4xl font-bold text-charcoal mb-2">
+                    Settings{' '}
+                    <span className="material-symbols-outlined text-3xl align-middle ml-2 text-charcoal/40">
+                        settings
+                    </span>
+                </h1>
+                <p className="font-dashboard-display text-charcoal/60 text-lg">
+                    Manage your company and kiosk configurations
                 </p>
             </div>
 
-            {/* Company Info */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Icons.building className="h-5 w-5" />
-                        Şirket Bilgileri
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="font-medium">{company?.name}</p>
-                            <p className="text-sm text-muted-foreground">Şirket Adı</p>
-                        </div>
+            {/* Stats Grid - Quick Overview */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Company Card */}
+                <div className="bg-white p-5 rounded-lg wiggly-border relative sketch-shadow hover:-translate-y-1 transition-transform cursor-default group">
+                    <div className="absolute top-3 right-3 opacity-20 group-hover:opacity-40 transition-opacity">
+                        <span className="material-symbols-outlined text-4xl text-blue-500">business</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <div>
-                            <p className="font-mono font-medium text-lg">{company?.id}</p>
-                            <p className="text-sm text-muted-foreground">Şirket ID</p>
-                        </div>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => copyToClipboard(company?.id || '', 'Şirket ID')}
-                        >
-                            <Icons.copy className="h-4 w-4 mr-2" />
-                            Kopyala
-                        </Button>
+                    <p className="font-hand text-sm text-charcoal/70 font-bold mb-1 uppercase tracking-wide">Company</p>
+                    <div className="flex items-end gap-2">
+                        <span className="font-dashboard-display text-2xl font-bold text-charcoal">{company?.name}</span>
                     </div>
-                </CardContent>
-            </Card>
+                    <p className="font-dashboard-display text-xs text-charcoal/50 mt-2">Active Organization</p>
+                </div>
 
-            {/* Plan Info */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Icons.creditCard className="h-5 w-5" />
-                        Abonelik Planı
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex items-center justify-between">
+                {/* Plan Card */}
+                <div className="bg-white p-5 rounded-lg wiggly-border relative sketch-shadow hover:-translate-y-1 transition-transform cursor-default group">
+                    <div className="absolute top-3 right-3 opacity-20 group-hover:opacity-40 transition-opacity">
+                        <span className="material-symbols-outlined text-4xl text-purple-500">workspace_premium</span>
+                    </div>
+                    <p className="font-hand text-sm text-charcoal/70 font-bold mb-1 uppercase tracking-wide">Plan</p>
+                    <div className="flex items-end gap-2">
+                        <span className="font-dashboard-display text-2xl font-bold text-charcoal capitalize">{company?.plan}</span>
+                        <span className={`font-hand text-xs px-2 py-0.5 rounded-full border ${company?.plan === 'pro'
+                            ? 'bg-purple-100 text-purple-800 border-purple-200'
+                            : 'bg-gray-100 text-gray-800 border-gray-200'
+                            }`}>
+                            {company?.plan === 'pro' ? 'Premium' : 'Free'}
+                        </span>
+                    </div>
+                    <p className="font-dashboard-display text-xs text-charcoal/50 mt-2">
+                        {company?.plan === 'free' ? 'Max 5 employees, 1 kiosk' : 'Unlimited access'}
+                    </p>
+                </div>
+
+                {/* Kiosks Card */}
+                <div className="bg-white p-5 rounded-lg wiggly-border relative sketch-shadow hover:-translate-y-1 transition-transform cursor-default group">
+                    <div className="absolute top-3 right-3 opacity-20 group-hover:opacity-40 transition-opacity">
+                        <span className="material-symbols-outlined text-4xl text-green-500">qr_code_scanner</span>
+                    </div>
+                    <p className="font-hand text-sm text-charcoal/70 font-bold mb-1 uppercase tracking-wide">Kiosks</p>
+                    <div className="flex items-end gap-2">
+                        <span className="font-dashboard-display text-2xl font-bold text-charcoal">{companyKiosks.length}</span>
+                        <span className="font-hand text-sm text-green-600 mb-1 font-bold">Active</span>
+                    </div>
+                    <p className="font-dashboard-display text-xs text-charcoal/50 mt-2">QR Terminal Devices</p>
+                </div>
+            </div>
+
+            {/* Company Details Section */}
+            <div className="bg-white rounded-lg wiggly-border sketch-shadow overflow-hidden">
+                <div className="p-6 border-b-2 border-charcoal/10 border-dashed flex justify-between items-center bg-background-light/50">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-100 rounded-lg border border-blue-200">
+                            <span className="material-symbols-outlined text-blue-600">business</span>
+                        </div>
                         <div>
-                            <div className="flex items-center gap-2">
-                                <p className="font-medium capitalize">{company?.plan} Plan</p>
-                                <Badge variant={company?.plan === 'pro' ? 'default' : 'secondary'}>
-                                    {company?.plan === 'pro' ? 'Pro' : 'Ücretsiz'}
-                                </Badge>
+                            <h3 className="font-hand text-xl font-bold text-charcoal">Company Information</h3>
+                            <p className="font-dashboard-display text-sm text-charcoal/60">Your organization details</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="p-6 space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-background-light/50 rounded-lg border border-charcoal/10 border-dashed">
+                        <div>
+                            <p className="font-hand text-sm text-charcoal/60 font-bold mb-1">Company Name</p>
+                            <p className="font-dashboard-display text-lg font-bold text-charcoal">{company?.name}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-blue-50/50 rounded-lg border border-blue-200 border-dashed">
+                        <div className="flex-1">
+                            <p className="font-hand text-sm text-charcoal/60 font-bold mb-1">Company ID</p>
+                            <code className="font-mono text-base font-bold text-charcoal bg-white px-3 py-1 rounded border border-blue-200">
+                                {company?.id}
+                            </code>
+                        </div>
+                        <button
+                            onClick={() => copyToClipboard(company?.id || '', 'Company ID')}
+                            className="ml-4 px-4 py-2 border-2 border-charcoal rounded-lg font-hand font-bold hover:bg-charcoal hover:text-white transition-colors text-sm uppercase tracking-wide flex items-center gap-2"
+                        >
+                            <span className="material-symbols-outlined text-base">content_copy</span>
+                            Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Subscription Plan Section */}
+            <div className="bg-white rounded-lg wiggly-border sketch-shadow overflow-hidden">
+                <div className="p-6 border-b-2 border-charcoal/10 border-dashed flex justify-between items-center bg-background-light/50">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-purple-100 rounded-lg border border-purple-200">
+                            <span className="material-symbols-outlined text-purple-600">workspace_premium</span>
+                        </div>
+                        <div>
+                            <h3 className="font-hand text-xl font-bold text-charcoal">Subscription Plan</h3>
+                            <p className="font-dashboard-display text-sm text-charcoal/60">Current plan and limits</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="p-6">
+                    <div className="flex items-center justify-between p-6 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
+                        <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <span className="font-hand text-3xl font-bold text-charcoal capitalize">{company?.plan} Plan</span>
+                                <span className={`inline-block px-4 py-1.5 ${company?.plan === 'pro'
+                                    ? 'bg-purple-200 text-purple-900 border-purple-300'
+                                    : 'bg-gray-200 text-gray-900 border-gray-300'
+                                    } rounded-md font-bold font-hand transform -rotate-1 border shadow-sm`}>
+                                    {company?.plan === 'pro' ? '⭐ Premium' : '🆓 Free Tier'}
+                                </span>
                             </div>
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <p className="font-dashboard-display text-charcoal/70">
                                 {company?.plan === 'free'
-                                    ? 'Maksimum 5 çalışan, 1 kiosk'
-                                    : 'Sınırsız çalışan ve kiosk'}
+                                    ? '📊 Maximum 5 employees • 🖥️ 1 kiosk terminal'
+                                    : '🚀 Unlimited employees • 🖥️ Unlimited kiosks'}
                             </p>
                         </div>
                         {company?.plan === 'free' && (
-                            <Button variant="outline">Pro'ya Yükselt</Button>
+                            <button className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg font-hand font-bold text-lg hover:shadow-lg hover:-translate-y-0.5 transition-all border-2 border-purple-700 flex items-center gap-2">
+                                <span className="material-symbols-outlined">upgrade</span>
+                                Upgrade to Pro
+                            </button>
                         )}
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
-            {/* Kiosk Accounts */}
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle className="flex items-center gap-2">
-                            <Icons.qrCode className="h-5 w-5" />
-                            Kiosk Hesapları
-                        </CardTitle>
-                        <CardDescription>
-                            QR kod terminalleri için hesaplar
-                        </CardDescription>
+            {/* Kiosk Accounts Section */}
+            <div className="bg-white rounded-lg wiggly-border sketch-shadow overflow-hidden">
+                <div className="p-6 border-b-2 border-charcoal/10 border-dashed flex justify-between items-center bg-background-light/50">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-green-100 rounded-lg border border-green-200">
+                            <span className="material-symbols-outlined text-green-600">qr_code_scanner</span>
+                        </div>
+                        <div>
+                            <h3 className="font-hand text-xl font-bold text-charcoal">Kiosk Accounts</h3>
+                            <p className="font-dashboard-display text-sm text-charcoal/60">QR terminal login credentials</p>
+                        </div>
                     </div>
                     <Dialog open={isOpen} onOpenChange={setIsOpen}>
                         <DialogTrigger asChild>
-                            <Button>
-                                <Icons.add className="mr-2 h-4 w-4" />
-                                Kiosk Ekle
-                            </Button>
+                            <button className="px-4 py-2 border-2 border-charcoal rounded-lg font-hand font-bold hover:bg-charcoal hover:text-white transition-colors text-sm uppercase tracking-wide flex items-center gap-2">
+                                <span className="material-symbols-outlined text-base">add_circle</span>
+                                Add Kiosk
+                            </button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Yeni Kiosk Hesabı</DialogTitle>
-                                <DialogDescription>
-                                    QR kod terminali için yeni bir hesap oluşturun
+                                <DialogTitle className="font-hand text-2xl">New Kiosk Account</DialogTitle>
+                                <DialogDescription className="font-dashboard-display">
+                                    Create a new account for QR code terminal
                                 </DialogDescription>
                             </DialogHeader>
                             <Form {...form}>
@@ -188,9 +248,9 @@ export function SettingsPage() {
                                         name="name"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Kiosk Adı</FormLabel>
+                                                <FormLabel className="font-hand font-bold">Kiosk Name</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Ana Giriş" {...field} />
+                                                    <Input placeholder="Main Entrance" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -201,9 +261,9 @@ export function SettingsPage() {
                                         name="kioskId"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Kiosk ID</FormLabel>
+                                                <FormLabel className="font-hand font-bold">Kiosk ID</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="KIOSK-001" className="uppercase" {...field} />
+                                                    <Input placeholder="KIOSK-001" className="uppercase font-mono" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -214,101 +274,114 @@ export function SettingsPage() {
                                         name="pin"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>PIN Kodu</FormLabel>
+                                                <FormLabel className="font-hand font-bold">PIN Code</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="1234" {...field} />
+                                                    <Input placeholder="1234" type="password" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
-                                    <Button type="submit" className="w-full">
-                                        Oluştur
-                                    </Button>
+                                    <button
+                                        type="submit"
+                                        className="w-full py-3 bg-charcoal text-white rounded-lg font-hand font-bold text-lg hover:bg-charcoal/90 transition-colors border-2 border-charcoal"
+                                    >
+                                        Create Kiosk
+                                    </button>
                                 </form>
                             </Form>
                         </DialogContent>
                     </Dialog>
-                </CardHeader>
-                <CardContent>
+                </div>
+                <div className="p-6">
                     {companyKiosks.length === 0 ? (
-                        <div className="text-center py-8">
-                            <Icons.qrCode className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                            <p className="text-muted-foreground mb-2">
-                                Henüz kiosk hesabı yok
+                        <div className="text-center py-12 bg-background-light/30 rounded-lg border-2 border-dashed border-charcoal/20">
+                            <div className="inline-block p-4 bg-green-100 rounded-full mb-4 border-2 border-green-200">
+                                <span className="material-symbols-outlined text-5xl text-green-600">qr_code_scanner</span>
+                            </div>
+                            <p className="font-hand text-xl font-bold text-charcoal mb-2">
+                                No kiosk accounts yet
                             </p>
-                            <p className="text-sm text-muted-foreground">
-                                "Kiosk Ekle" butonuna tıklayarak ilk kiosk hesabınızı oluşturun
+                            <p className="font-dashboard-display text-charcoal/60 max-w-md mx-auto">
+                                Click the "Add Kiosk" button above to create your first QR terminal account
                             </p>
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {/* Instructions */}
-                            <Alert>
-                                <Icons.info className="h-4 w-4" />
-                                <AlertTitle>Kiosk Nasıl Açılır?</AlertTitle>
-                                <AlertDescription>
-                                    Kiosk cihazında <code className="bg-muted px-1 rounded">/kiosk/login</code> adresine gidin.
-                                    <strong> Kiosk ID</strong> ve <strong>PIN</strong> bilgilerini girin.
-                                </AlertDescription>
-                            </Alert>
+                            {/* Instructions Alert */}
+                            <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200 border-dashed flex gap-3">
+                                <span className="material-symbols-outlined text-blue-600 flex-shrink-0">info</span>
+                                <div>
+                                    <p className="font-hand font-bold text-charcoal mb-1">How to Access Kiosk?</p>
+                                    <p className="font-dashboard-display text-sm text-charcoal/70">
+                                        On the kiosk device, navigate to <code className="bg-white px-2 py-0.5 rounded border border-blue-300 font-mono text-xs">/kiosk/login</code>
+                                        {' '}and enter the <strong>Kiosk ID</strong> and <strong>PIN</strong> below.
+                                    </p>
+                                </div>
+                            </div>
 
-                            {companyKiosks.map((kiosk) => (
+                            {/* Kiosk List */}
+                            {companyKiosks.map((kiosk, index) => (
                                 <div
                                     key={kiosk.id}
-                                    className="flex items-center justify-between p-4 border rounded-lg"
+                                    className="flex items-center justify-between p-5 bg-white rounded-lg border-2 border-charcoal/10 hover:border-green-200 hover:bg-green-50/30 transition-all group"
                                 >
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-2 bg-primary/10 rounded-lg">
-                                            <Icons.qrCode className="h-5 w-5 text-primary" />
+                                    <div className="flex items-center gap-4 flex-1">
+                                        <div className={`p-3 rounded-lg border-2 ${index % 3 === 0 ? 'bg-blue-100 border-blue-200' :
+                                            index % 3 === 1 ? 'bg-purple-100 border-purple-200' :
+                                                'bg-green-100 border-green-200'
+                                            }`}>
+                                            <span className={`material-symbols-outlined text-2xl ${index % 3 === 0 ? 'text-blue-600' :
+                                                index % 3 === 1 ? 'text-purple-600' :
+                                                    'text-green-600'
+                                                }`}>qr_code_scanner</span>
                                         </div>
-                                        <div>
-                                            <p className="font-medium">{kiosk.name}</p>
-                                            <div className="flex items-center gap-3 mt-1">
-                                                <div className="flex items-center gap-1">
-                                                    <span className="text-sm text-muted-foreground">ID:</span>
-                                                    <code className="bg-muted px-2 py-0.5 rounded text-sm font-mono">
+                                        <div className="flex-1">
+                                            <p className="font-hand text-lg font-bold text-charcoal mb-2">{kiosk.name}</p>
+                                            <div className="flex flex-wrap items-center gap-4">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-hand text-xs text-charcoal/60 font-bold uppercase">ID:</span>
+                                                    <code className="bg-charcoal/5 px-3 py-1 rounded border border-charcoal/20 text-sm font-mono font-bold text-charcoal">
                                                         {kiosk.kioskId}
                                                     </code>
                                                 </div>
-                                                <div className="flex items-center gap-1">
-                                                    <span className="text-sm text-muted-foreground">PIN:</span>
-                                                    <code className="bg-muted px-2 py-0.5 rounded text-sm font-mono">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-hand text-xs text-charcoal/60 font-bold uppercase">PIN:</span>
+                                                    <code className="bg-charcoal/5 px-3 py-1 rounded border border-charcoal/20 text-sm font-mono font-bold text-charcoal min-w-[60px]">
                                                         {showPins[kiosk.id] ? kiosk.pin : '••••'}
                                                     </code>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-6 w-6"
+                                                    <button
                                                         onClick={() => togglePinVisibility(kiosk.id)}
+                                                        className="p-1.5 hover:bg-charcoal/5 rounded-full transition-colors"
+                                                        title={showPins[kiosk.id] ? 'Hide PIN' : 'Show PIN'}
                                                     >
-                                                        {showPins[kiosk.id] ? (
-                                                            <Icons.eyeOff className="h-3 w-3" />
-                                                        ) : (
-                                                            <Icons.eye className="h-3 w-3" />
-                                                        )}
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-6 w-6"
+                                                        <span className="material-symbols-outlined text-base text-charcoal/60">
+                                                            {showPins[kiosk.id] ? 'visibility_off' : 'visibility'}
+                                                        </span>
+                                                    </button>
+                                                    <button
                                                         onClick={() => copyToClipboard(kiosk.pin, 'PIN')}
+                                                        className="p-1.5 hover:bg-charcoal/5 rounded-full transition-colors"
+                                                        title="Copy PIN"
                                                     >
-                                                        <Icons.copy className="h-3 w-3" />
-                                                    </Button>
+                                                        <span className="material-symbols-outlined text-base text-charcoal/60">content_copy</span>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <Button variant="ghost" size="icon">
-                                        <Icons.delete className="h-4 w-4 text-muted-foreground" />
-                                    </Button>
+                                    <button
+                                        className="p-2 hover:bg-red-100 rounded-full transition-colors group/delete"
+                                        title="Delete kiosk"
+                                    >
+                                        <span className="material-symbols-outlined text-charcoal/40 group-hover/delete:text-red-600">delete</span>
+                                    </button>
                                 </div>
                             ))}
                         </div>
                     )}
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </div>
     )
 }
