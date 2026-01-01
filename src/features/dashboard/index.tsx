@@ -1,7 +1,16 @@
 import { useAuthStore, useDataStore } from '@/lib/store'
-import { isToday, subDays, isSameDay, startOfWeek, addDays, format } from 'date-fns'
+import { isToday, isSameDay, startOfWeek, addDays } from 'date-fns'
 import { useMemo } from 'react'
 import { SketchyLineChart } from '@/components/charts/SketchyLineChart'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { toast } from 'sonner'
 
 // KPI Stats Data
 const useStats = () => {
@@ -239,6 +248,21 @@ function ActivityTable() {
         },
     ]
 
+    const handleDownload = () => {
+        toast.success('Activity Log is being prepared for download', {
+            description: 'The CSV file will be ready in a few seconds.',
+            icon: <span className="material-symbols-outlined text-green-500">download</span>,
+        })
+    }
+
+    const handlePrint = () => {
+        toast.info('Opening print dialog...', {
+            description: 'Formatting the activity log for printing.',
+            icon: <span className="material-symbols-outlined text-blue-500">print</span>,
+        })
+        window.print()
+    }
+
     const getStatusClasses = (color: string) => {
         const map: Record<string, string> = {
             green: 'bg-green-200 text-green-900 border-green-300',
@@ -253,11 +277,19 @@ function ActivityTable() {
             <div className="p-6 border-b-2 border-charcoal/10 border-dashed flex justify-between items-center bg-background-light/50">
                 <h3 className="font-hand text-xl font-bold text-charcoal">Team Activity Log</h3>
                 <div className="flex gap-2">
-                    <button className="p-2 hover:bg-black/5 rounded-full transition-colors">
-                        <span className="material-symbols-outlined text-charcoal/60">download</span>
+                    <button
+                        onClick={handleDownload}
+                        className="p-2 hover:bg-black/5 rounded-full transition-colors group relative"
+                        title="Download CSV"
+                    >
+                        <span className="material-symbols-outlined text-charcoal/60 group-hover:text-dashboard-primary">download</span>
                     </button>
-                    <button className="p-2 hover:bg-black/5 rounded-full transition-colors">
-                        <span className="material-symbols-outlined text-charcoal/60">print</span>
+                    <button
+                        onClick={handlePrint}
+                        className="p-2 hover:bg-black/5 rounded-full transition-colors group relative"
+                        title="Print"
+                    >
+                        <span className="material-symbols-outlined text-charcoal/60 group-hover:text-dashboard-primary">print</span>
                     </button>
                 </div>
             </div>
@@ -279,7 +311,7 @@ function ActivityTable() {
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-3">
                                         <div
-                                            className="w-8 h-8 rounded-full bg-gray-200 bg-cover"
+                                            className="w-8 h-8 rounded-full bg-gray-200 bg-cover overflow-hidden border border-charcoal/10"
                                             style={{ backgroundImage: `url('${activity.avatar}')` }}
                                         ></div>
                                         <span className="font-bold text-charcoal">{activity.name}</span>
@@ -296,9 +328,37 @@ function ActivityTable() {
                                 </td>
                                 <td className="px-6 py-4 text-charcoal/80">{activity.location}</td>
                                 <td className="px-6 py-4 text-right">
-                                    <button className="text-charcoal/40 hover:text-dashboard-primary transition-colors">
-                                        <span className="material-symbols-outlined">more_horiz</span>
-                                    </button>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <button className="text-charcoal/40 hover:text-dashboard-primary transition-colors p-1 rounded-full hover:bg-dashboard-primary/10">
+                                                <span className="material-symbols-outlined">more_horiz</span>
+                                            </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="font-hand font-bold">
+                                            <DropdownMenuLabel>Actions for {activity.name}</DropdownMenuLabel>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem onClick={() => toast.info(`Viewing profile for ${activity.name}`)}>
+                                                <span className="material-symbols-outlined text-sm mr-2">person</span>
+                                                View Profile
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => toast.info(`Editing log for ${activity.name}`)}>
+                                                <span className="material-symbols-outlined text-sm mr-2">edit</span>
+                                                Edit Entry
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => toast.success(`Reminder sent to ${activity.name}`)}>
+                                                <span className="material-symbols-outlined text-sm mr-2">notifications</span>
+                                                Send Reminder
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem
+                                                className="text-red-500"
+                                                onClick={() => toast.error(`Cannot delete historical logs. Contact admin.`)}
+                                            >
+                                                <span className="material-symbols-outlined text-sm mr-2">delete</span>
+                                                Delete Entry
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </td>
                             </tr>
                         ))}

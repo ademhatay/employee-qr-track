@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useCallback } from 'react'
 
 interface DataPoint {
     label: string
@@ -25,30 +25,32 @@ export function SketchyLineChart({
     onFilterClick
 }: SketchyLineChartProps) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+    const chartRef = useRef<HTMLDivElement>(null)
 
     // Calculate chart dimensions and scaling
     const chartConfig = useMemo(() => {
         const maxValue = Math.max(...data.map(d => d.value), 1)
-        const minValue = Math.min(...data.map(d => d.value), 0)
 
         // Round max to nice number for Y axis
         const niceMax = Math.ceil(maxValue / 50) * 50 || 100
 
-        // Generate Y axis labels
-        const yLabels = [niceMax, Math.round(niceMax * 0.66), Math.round(niceMax * 0.33), 0]
+        // Generate Y axis labels (5 labels)
+        const yLabels = [
+            niceMax,
+            Math.round(niceMax * 0.75),
+            Math.round(niceMax * 0.5),
+            Math.round(niceMax * 0.25),
+            0
+        ]
 
-        return { maxValue: niceMax, minValue, yLabels }
+        return { maxValue: niceMax, yLabels }
     }, [data])
 
-    // Calculate point positions
+    // Calculate point positions as percentages
     const points = useMemo(() => {
-        const chartWidth = 100 // percentage
-        const chartHeight = 100 // percentage
-        const padding = 5
-
         return data.map((point, index) => {
-            const x = padding + ((chartWidth - padding * 2) / (data.length - 1 || 1)) * index
-            const y = chartHeight - padding - ((point.value / chartConfig.maxValue) * (chartHeight - padding * 2))
+            const x = (index / (data.length - 1 || 1)) * 100
+            const y = 100 - ((point.value / chartConfig.maxValue) * 100)
             return { ...point, x, y, index }
         })
     }, [data, chartConfig.maxValue])
@@ -57,17 +59,19 @@ export function SketchyLineChart({
     const linePath = useMemo(() => {
         if (points.length === 0) return ''
 
-        // Create smooth curve using quadratic bezier
         let path = `M ${points[0].x} ${points[0].y}`
 
         for (let i = 1; i < points.length; i++) {
             const prev = points[i - 1]
             const curr = points[i]
-            const midX = (prev.x + curr.x) / 2
 
-            // Quadratic bezier for smooth curve
-            path += ` Q ${prev.x + (curr.x - prev.x) * 0.5} ${prev.y}, ${midX} ${(prev.y + curr.y) / 2}`
-            path += ` T ${curr.x} ${curr.y}`
+            // Control points for smooth cubic bezier
+            const cp1x = prev.x + (curr.x - prev.x) * 0.4
+            const cp1y = prev.y
+            const cp2x = curr.x - (curr.x - prev.x) * 0.4
+            const cp2y = curr.y
+
+            path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${curr.x} ${curr.y}`
         }
 
         return path
@@ -77,28 +81,54 @@ export function SketchyLineChart({
     const areaPath = useMemo(() => {
         if (points.length === 0) return ''
 
-        let path = `M ${points[0].x} 95` // Start at bottom
-        path += ` L ${points[0].x} ${points[0].y}` // Go up to first point
+        let path = `M ${points[0].x} 100`
+        path += ` L ${points[0].x} ${points[0].y}`
 
         for (let i = 1; i < points.length; i++) {
             const prev = points[i - 1]
             const curr = points[i]
-            const midX = (prev.x + curr.x) / 2
 
-            path += ` Q ${prev.x + (curr.x - prev.x) * 0.5} ${prev.y}, ${midX} ${(prev.y + curr.y) / 2}`
-            path += ` T ${curr.x} ${curr.y}`
+            const cp1x = prev.x + (curr.x - prev.x) * 0.4
+            const cp1y = prev.y
+            const cp2x = curr.x - (curr.x - prev.x) * 0.4
+            const cp2y = curr.y
+
+            path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${curr.x} ${curr.y}`
         }
 
-        path += ` L ${points[points.length - 1].x} 95` // Go down to bottom
-        path += ' Z' // Close path
+        path += ` L ${points[points.length - 1].x} 100`
+        path += ' Z'
 
         return path
     }, [points])
 
+    // Find the nearest point based on mouse X position
+    const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+        if (!chartRef.current || points.length === 0) return
+
+        const chartArea = chartRef.current.querySelector('.chart-area')
+        if (!chartArea) return
+
+        const rect = chartArea.getBoundingClientRect()
+        const mouseX = e.clientX - rect.left
+        const chartWidth = rect.width
+
+        const relativeX = Math.max(0, Math.min(1, mouseX / chartWidth))
+        const pointSpacing = 1 / (points.length - 1 || 1)
+        const nearestIndex = Math.round(relativeX / pointSpacing)
+        const clampedIndex = Math.max(0, Math.min(points.length - 1, nearestIndex))
+
+        setHoveredIndex(clampedIndex)
+    }, [points])
+
+    const handleMouseLeave = useCallback(() => {
+        setHoveredIndex(null)
+    }, [])
+
     return (
         <div className="bg-white p-6 rounded-lg wiggly-border sketch-shadow relative overflow-hidden">
             {/* Header */}
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-4">
                 <h3 className="font-hand text-2xl font-bold text-charcoal">
                     {title}
                     {subtitle && (
@@ -118,122 +148,160 @@ export function SketchyLineChart({
             </div>
 
             {/* Chart Container */}
-            <div className="relative h-64 w-full pl-10 pb-8">
+            <div
+                ref={chartRef}
+                className="relative h-64 w-full"
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+            >
                 {/* Y Axis Labels */}
-                <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs font-hand text-charcoal/50 py-2 w-8 text-right pr-2">
+                <div className="absolute left-0 top-0 bottom-6 flex flex-col justify-between text-xs font-dashboard-display text-charcoal/40 w-8 text-right pr-2">
                     {chartConfig.yLabels.map((label, i) => (
                         <span key={i}>{label}</span>
                     ))}
                 </div>
 
+                {/* Chart Area */}
+                <div className="absolute left-10 right-0 top-0 bottom-6 chart-area">
+                    {/* Horizontal Grid Lines */}
+                    <div className="absolute inset-0 flex flex-col justify-between border-l border-charcoal/15">
+                        {chartConfig.yLabels.map((_, i) => (
+                            <div
+                                key={i}
+                                className={`w-full ${i === chartConfig.yLabels.length - 1 ? 'border-b border-charcoal/20' : 'border-b border-dashed border-charcoal/8'}`}
+                            />
+                        ))}
+                    </div>
+
+                    {/* SVG for line and area */}
+                    <svg
+                        className="absolute inset-0 w-full h-full overflow-visible"
+                        viewBox="0 0 100 100"
+                        preserveAspectRatio="none"
+                    >
+                        <defs>
+                            <linearGradient id="chartAreaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stopColor={color} stopOpacity="0.15" />
+                                <stop offset="100%" stopColor={color} stopOpacity="0.02" />
+                            </linearGradient>
+                        </defs>
+
+                        {/* Area fill */}
+                        <path d={areaPath} fill="url(#chartAreaGradient)" />
+
+                        {/* Line - using vector-effect for consistent stroke width */}
+                        <path
+                            d={linePath}
+                            fill="none"
+                            stroke={color}
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            vectorEffect="non-scaling-stroke"
+                        />
+
+                        {/* Vertical hover line */}
+                        {hoveredIndex !== null && points[hoveredIndex] && (
+                            <line
+                                x1={points[hoveredIndex].x}
+                                y1="0"
+                                x2={points[hoveredIndex].x}
+                                y2="100"
+                                stroke={color}
+                                strokeWidth="1"
+                                strokeDasharray="4,3"
+                                opacity="0.35"
+                                vectorEffect="non-scaling-stroke"
+                            />
+                        )}
+                    </svg>
+
+                    {/* Data Points - HTML elements for perfect circles */}
+                    {points.map((point, i) => (
+                        <div
+                            key={i}
+                            className="absolute"
+                            style={{
+                                left: `${point.x}%`,
+                                top: `${point.y}%`,
+                                transform: 'translate(-50%, -50%)',
+                                pointerEvents: 'none',
+                            }}
+                        >
+                            {/* Pulse effect for hovered */}
+                            {hoveredIndex === i && (
+                                <div
+                                    className="absolute rounded-full animate-ping"
+                                    style={{
+                                        width: 18,
+                                        height: 18,
+                                        left: -9,
+                                        top: -9,
+                                        backgroundColor: color,
+                                        opacity: 0.25
+                                    }}
+                                />
+                            )}
+                            {/* Main dot - perfect circle */}
+                            <div
+                                className="rounded-full transition-all duration-150"
+                                style={{
+                                    width: hoveredIndex === i ? 12 : 8,
+                                    height: hoveredIndex === i ? 12 : 8,
+                                    marginLeft: hoveredIndex === i ? -6 : -4,
+                                    marginTop: hoveredIndex === i ? -6 : -4,
+                                    backgroundColor: hoveredIndex === i ? color : '#fff',
+                                    border: `2px solid ${hoveredIndex === i ? color : '#666'}`,
+                                    boxShadow: hoveredIndex === i
+                                        ? `0 0 0 4px ${color}20, 0 2px 4px rgba(0,0,0,0.1)`
+                                        : '0 1px 3px rgba(0,0,0,0.08)',
+                                }}
+                            />
+                        </div>
+                    ))}
+
+                    {/* Tooltip */}
+                    {hoveredIndex !== null && points[hoveredIndex] && (
+                        <div
+                            className="absolute bg-charcoal text-white text-xs px-3 py-2 rounded-lg font-dashboard-display shadow-lg z-20 pointer-events-none"
+                            style={{
+                                left: `${points[hoveredIndex].x}%`,
+                                top: `${points[hoveredIndex].y}%`,
+                                transform: 'translate(-50%, calc(-100% - 14px))',
+                            }}
+                        >
+                            <div className="flex flex-col items-center gap-0.5">
+                                <span className="text-base font-bold" style={{ color }}>
+                                    {points[hoveredIndex].value}
+                                </span>
+                                <span className="text-white/60 text-[10px]">
+                                    {unit} • {points[hoveredIndex].label}
+                                </span>
+                            </div>
+                            <div
+                                className="absolute left-1/2 -bottom-1.5"
+                                style={{
+                                    transform: 'translateX(-50%)',
+                                    borderLeft: '5px solid transparent',
+                                    borderRight: '5px solid transparent',
+                                    borderTop: '5px solid #2D2D2D',
+                                }}
+                            />
+                        </div>
+                    )}
+                </div>
+
                 {/* X Axis Labels */}
-                <div className="absolute left-10 bottom-0 right-0 flex justify-between text-xs font-hand text-charcoal/50 px-2">
+                <div className="absolute left-10 right-0 bottom-0 flex justify-between text-xs font-dashboard-display text-charcoal/40 h-6 items-center">
                     {data.map((point, i) => (
                         <span
                             key={i}
-                            className={`transition-all ${hoveredIndex === i ? 'text-charcoal font-bold scale-110' : ''}`}
+                            className={`transition-all duration-150 ${hoveredIndex === i ? 'text-charcoal font-semibold' : ''}`}
                         >
                             {point.label}
                         </span>
                     ))}
                 </div>
-
-                {/* Grid Lines */}
-                <div
-                    className="w-full h-full flex flex-col justify-between py-2 border-l-2 border-charcoal/80 border-dashed"
-                    style={{ borderRadius: '2px' }}
-                >
-                    <div className="w-full border-b border-charcoal/10 border-dashed"></div>
-                    <div className="w-full border-b border-charcoal/10 border-dashed"></div>
-                    <div className="w-full border-b border-charcoal/10 border-dashed"></div>
-                    <div className="w-full border-b-2 border-charcoal/80"></div>
-                </div>
-
-                {/* SVG Chart */}
-                <svg
-                    className="absolute inset-0 pl-10 pb-8 pr-2 pt-2 w-full h-full overflow-visible"
-                    viewBox="0 0 100 100"
-                    preserveAspectRatio="none"
-                >
-                    {/* Wiggle filter for hand-drawn effect */}
-                    <defs>
-                        <filter id="sketchyWiggle" x="-5%" y="-5%" width="110%" height="110%">
-                            <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" result="noise" />
-                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="1" xChannelSelector="R" yChannelSelector="G" />
-                        </filter>
-                    </defs>
-
-                    {/* Area fill */}
-                    <path
-                        d={areaPath}
-                        fill={`${color}10`}
-                        className="transition-all duration-300"
-                    />
-
-                    {/* The Line */}
-                    <path
-                        d={linePath}
-                        fill="none"
-                        stroke={color}
-                        strokeWidth="0.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="drop-shadow-sm"
-                        style={{ filter: 'url(#sketchyWiggle)' }}
-                    />
-
-                    {/* Interactive Points */}
-                    {points.map((point, i) => (
-                        <g key={i}>
-                            {/* Hover area (larger invisible circle) */}
-                            <circle
-                                cx={point.x}
-                                cy={point.y}
-                                r="4"
-                                fill="transparent"
-                                className="cursor-pointer"
-                                onMouseEnter={() => setHoveredIndex(i)}
-                                onMouseLeave={() => setHoveredIndex(null)}
-                            />
-                            {/* Visible point */}
-                            <circle
-                                cx={point.x}
-                                cy={point.y}
-                                r={hoveredIndex === i ? '2' : '1'}
-                                fill={hoveredIndex === i ? color : '#FDFBF7'}
-                                stroke="#2D2D2D"
-                                strokeWidth="0.4"
-                                className="transition-all duration-200 cursor-pointer"
-                                onMouseEnter={() => setHoveredIndex(i)}
-                                onMouseLeave={() => setHoveredIndex(null)}
-                            />
-                        </g>
-                    ))}
-                </svg>
-
-                {/* Tooltip */}
-                {hoveredIndex !== null && points[hoveredIndex] && (
-                    <div
-                        className="absolute bg-charcoal text-white text-xs px-3 py-2 rounded-lg font-dashboard-display shadow-lg z-20 pointer-events-none transform -translate-x-1/2 -translate-y-full animate-in fade-in duration-150"
-                        style={{
-                            left: `calc(${points[hoveredIndex].x}% + 2.5rem)`,
-                            top: `calc(${points[hoveredIndex].y}% - 0.5rem)`,
-                        }}
-                    >
-                        <div className="flex flex-col items-center gap-0.5">
-                            <span className="font-hand text-base font-bold" style={{ color }}>
-                                {points[hoveredIndex].value} {unit}
-                            </span>
-                            <span className="text-white/60 text-[10px]">
-                                {points[hoveredIndex].label}
-                            </span>
-                        </div>
-                        {/* Tooltip arrow */}
-                        <div
-                            className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-charcoal"
-                        />
-                    </div>
-                )}
             </div>
 
             {/* Legend / Stats */}
@@ -243,13 +311,13 @@ export function SketchyLineChart({
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: color }}
                     />
-                    <span className="text-sm font-hand text-charcoal/60">{unit}</span>
+                    <span className="text-sm font-dashboard-display text-charcoal/50">{unit}</span>
                 </div>
-                <div className="flex items-center gap-4 text-sm font-hand">
-                    <span className="text-charcoal/60">
+                <div className="flex items-center gap-4 text-sm font-dashboard-display">
+                    <span className="text-charcoal/50">
                         Total: <strong className="text-charcoal">{data.reduce((sum, d) => sum + d.value, 0)}</strong>
                     </span>
-                    <span className="text-charcoal/60">
+                    <span className="text-charcoal/50">
                         Avg: <strong className="text-charcoal">{Math.round(data.reduce((sum, d) => sum + d.value, 0) / data.length || 0)}</strong>
                     </span>
                 </div>

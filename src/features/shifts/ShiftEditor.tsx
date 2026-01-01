@@ -16,11 +16,16 @@ const shiftColors = [
 
 // Timeline config
 const TIMELINE_START_HOUR = 0 // 12 AM (midnight)
-const TIMELINE_END_HOUR = 24 // 12 AM (next day midnight)
+const TIMELINE_END_HOUR = 24 // 12 AM (next day midnight) - for display
 const HOURS_IN_TIMELINE = TIMELINE_END_HOUR - TIMELINE_START_HOUR // 24 hours
 const PIXELS_PER_HOUR = 60 // Width of each hour column (slightly smaller for 24h)
 const ROW_HEIGHT = 60 // Height of each employee row
 const SNAP_MINUTES = 15 // Snap to 15-minute intervals
+
+// Maximum shift end time (23:45 = 11:45 PM) - shifts cannot end after this
+const SHIFT_MAX_END_HOUR = 23
+const SHIFT_MAX_END_MINUTES = 45
+const SHIFT_MAX_END_TOTAL_MINUTES = SHIFT_MAX_END_HOUR * 60 + SHIFT_MAX_END_MINUTES // 1425 minutes
 
 interface EditorShift extends Omit<Shift, 'id'> {
     id: string
@@ -429,18 +434,46 @@ export function ShiftEditor() {
             newStartHour += Math.floor(newStartMinutes / 60)
             newStartMinutes = ((newStartMinutes % 60) + 60) % 60
 
-            // Clamp to timeline bounds
+            // Calculate what the end time would be with this new start
+            const newEndTotalMinutes = (newStartHour * 60 + newStartMinutes) + duration
+
+            // STRICT BOUNDARY CHECK: If end would exceed 23:45, DON'T MOVE AT ALL
+            if (newEndTotalMinutes > SHIFT_MAX_END_TOTAL_MINUTES) {
+                // Calculate maximum allowed start time
+                const maxStartTotalMinutes = SHIFT_MAX_END_TOTAL_MINUTES - duration
+
+                // If we're trying to move RIGHT (positive delta) and already at max, do nothing
+                if (minutesDelta > 0) {
+                    const currentEndMinutes = originalEnd.getHours() * 60 + originalEnd.getMinutes()
+                    if (currentEndMinutes >= SHIFT_MAX_END_TOTAL_MINUTES) {
+                        return // Already at max, don't allow moving right
+                    }
+                }
+
+                // Clamp to maximum position
+                newStartHour = Math.floor(maxStartTotalMinutes / 60)
+                newStartMinutes = maxStartTotalMinutes % 60
+            }
+
+            // Don't allow start before midnight (00:00)
             if (newStartHour < TIMELINE_START_HOUR) {
                 newStartHour = TIMELINE_START_HOUR
-                newStartMinutes = 0
-            }
-            if (newStartHour >= TIMELINE_END_HOUR) {
-                newStartHour = TIMELINE_END_HOUR - 1
                 newStartMinutes = 0
             }
 
             const newStart = setMinutes(setHours(originalDay, newStartHour), newStartMinutes)
             const newEnd = addMinutes(newStart, duration)
+
+            // Final validation - check end time is within bounds
+            const finalEndTotalMinutes = newEnd.getHours() * 60 + newEnd.getMinutes()
+            if (finalEndTotalMinutes > SHIFT_MAX_END_TOTAL_MINUTES) {
+                return // Don't update - would exceed 23:45 limit
+            }
+
+            // Also check for day overflow
+            if (newEnd.getDate() !== originalDay.getDate()) {
+                return // Don't allow day overflow
+            }
 
             updateShift(dragState.shiftId, {
                 startTime: newStart.toISOString(),
@@ -460,10 +493,30 @@ export function ShiftEditor() {
                 let newStartHour = originalStart.getHours() + Math.floor(newStartMinutes / 60)
                 newStartMinutes = ((newStartMinutes % 60) + 60) % 60
 
-                // Clamp
-                if (newStartHour < TIMELINE_START_HOUR) {
-                    newStartHour = TIMELINE_START_HOUR
-                    newStartMinutes = 0
+                // In DAILY mode: strictly clamp to day boundaries
+                if (viewMode === 'daily') {
+                    // Don't allow going before midnight (00:00)
+                    if (newStartHour < TIMELINE_START_HOUR) {
+                        newStartHour = TIMELINE_START_HOUR
+                        newStartMinutes = 0
+                    }
+
+                    // Don't allow going past end time
+                    const endTotalMinutes = originalEnd.getHours() * 60 + originalEnd.getMinutes()
+                    const newStartTotalMinutes = newStartHour * 60 + newStartMinutes
+
+                    if (newStartTotalMinutes >= endTotalMinutes - SNAP_MINUTES) {
+                        // Clamp to minimum duration before end
+                        const maxStartMinutes = endTotalMinutes - SNAP_MINUTES
+                        newStartHour = Math.floor(maxStartMinutes / 60)
+                        newStartMinutes = maxStartMinutes % 60
+                    }
+                } else {
+                    // Weekly mode: basic clamp
+                    if (newStartHour < TIMELINE_START_HOUR) {
+                        newStartHour = TIMELINE_START_HOUR
+                        newStartMinutes = 0
+                    }
                 }
 
                 const newStart = setMinutes(setHours(originalStart, newStartHour), newStartMinutes)
@@ -478,22 +531,37 @@ export function ShiftEditor() {
                 let newEndHour = originalEnd.getHours() + Math.floor(newEndMinutes / 60)
                 newEndMinutes = ((newEndMinutes % 60) + 60) % 60
 
-                // Clamp
-                if (newEndHour > TIMELINE_END_HOUR) {
-                    newEndHour = TIMELINE_END_HOUR
-                    newEndMinutes = 0
+                const day = parseISO(dragState.originalShift.startTime)
+
+                // Calculate total minutes for comparison
+                let newEndTotalMinutes = newEndHour * 60 + newEndMinutes
+
+                // STRICT: Clamp to 23:45 maximum - shifts cannot end after this
+                if (newEndTotalMinutes > SHIFT_MAX_END_TOTAL_MINUTES) {
+                    newEndHour = SHIFT_MAX_END_HOUR
+                    newEndMinutes = SHIFT_MAX_END_MINUTES
+                    newEndTotalMinutes = SHIFT_MAX_END_TOTAL_MINUTES
                 }
 
-                const day = parseISO(dragState.originalShift.startTime)
+                // Prevent going before start time (minimum duration)
+                const startTotalMinutes = originalStart.getHours() * 60 + originalStart.getMinutes()
+
+                if (newEndTotalMinutes <= startTotalMinutes + SNAP_MINUTES) {
+                    // Clamp to minimum duration after start
+                    const minEndMinutes = startTotalMinutes + SNAP_MINUTES
+                    newEndHour = Math.floor(minEndMinutes / 60)
+                    newEndMinutes = minEndMinutes % 60
+                }
+
                 const newEnd = setMinutes(setHours(day, newEndHour), newEndMinutes)
 
-                // Ensure minimum duration
+                // Final validation - ensure minimum duration
                 if (differenceInMinutes(newEnd, originalStart) >= SNAP_MINUTES) {
                     updateShift(dragState.shiftId, { endTime: newEnd.toISOString() })
                 }
             }
         }
-    }, [dragState, viewDays, pixelsToTime, updateShift, employeesInEditor, user?.companyId, shifts])
+    }, [dragState, viewDays, viewMode, pixelsToTime, updateShift, employeesInEditor, user?.companyId, shifts])
 
     // Handle mouse up
     const handleMouseUp = useCallback(() => {
